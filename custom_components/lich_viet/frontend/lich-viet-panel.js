@@ -1,8 +1,10 @@
 /* Lịch Việt - trang lịch âm trên sidebar Home Assistant. Không cần build, không phụ thuộc thư viện. */
 
 const WEEKDAYS = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
-const TYPE_LABELS = { gio: "Giỗ", sinh_nhat: "Sinh nhật", ky_niem: "Kỷ niệm", khac: "Khác" };
-const TYPE_ICONS = { gio: "mdi:candle", sinh_nhat: "mdi:cake-variant", ky_niem: "mdi:heart-multiple", khac: "mdi:star" };
+const TYPE_LABELS = { sinh_nhat: "Sinh nhật", gio: "Giỗ", ky_niem: "Kỷ niệm", khac: "Khác" };
+const TYPE_PLACEHOLDERS = { sinh_nhat: "Sinh nhật con", gio: "Giỗ ông nội", ky_niem: "Kỷ niệm ngày cưới", khac: "Họp lớp" };
+// Giỗ thường tính theo âm lịch, các loại khác theo dương lịch.
+const TYPE_CALENDAR = { sinh_nhat: "solar", gio: "lunar", ky_niem: "solar", khac: "solar" };
 const CATEGORY_LABELS = {
   national: "Lễ quốc gia",
   lunar: "Lễ truyền thống",
@@ -15,6 +17,7 @@ const ERRORS = {
   name_required: "Nhập tên sự kiện",
   date_invalid: "Ngày hoặc tháng không hợp lệ",
   year_invalid: "Năm phải trong khoảng 1800–2199",
+  year_required: "Sự kiện chỉ một lần cần nhập năm",
   remind_invalid: "Số ngày nhắc trước từ 0 đến 60",
   type_invalid: "Loại sự kiện không hợp lệ",
   calendar_invalid: "Loại lịch không hợp lệ",
@@ -89,6 +92,10 @@ ha-icon { --mdc-icon-size:20px; }
 .cell .ev.off .t { color:var(--error-color, #db4437); font-weight:500; }
 .cell .ev .dot { width:6px; height:6px; border-radius:50%; flex:none; }
 .cell .more { font-size:10.5px; color:var(--secondary-text-color); line-height:1.2; }
+.tag { display:inline-block; font-size:11px; font-weight:500; line-height:1.5; padding:0 7px; border-radius:999px; white-space:nowrap; flex:none;
+  background:rgba(29,158,117,.18); color:#12866a; vertical-align:middle; }
+.cell .ev .tag { font-size:10px; padding:0 5px; line-height:1.4; }
+.day-event .tag { margin-left:-2px; }
 .dot-national { background:#e24b4a; } .dot-lunar, .dot-monthly { background:#ef9f27; } .dot-social { background:#7f77dd; }
 .dot-international { background:#639922; } .dot-family { background:#1d9e75; }
 .swatch { width:24px; height:24px; border-radius:6px; flex:none; display:inline-flex; align-items:center; justify-content:center; color:#b06e0a; }
@@ -141,6 +148,7 @@ ha-icon { --mdc-icon-size:20px; }
   .cell .ev .dot { width:4px; height:4px; margin-top:4px; }
   .cell .ev .t { white-space:normal; overflow-wrap:anywhere; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
   .cell .more { font-size:9.5px; }
+  .cell .ev .tag { display:none; }
   .hero .big .num { font-size:44px; }
   .toolbar .title { font-size:18px; }
   .toolbar .label { display:none; }
@@ -310,8 +318,10 @@ class LichVietPanel extends HTMLElement {
 
   // ------------------------------------------------------------ sự kiện
   _openDialog(event) {
-    const base = { name: "", type: "gio", calendar: "lunar", day: "", month: "", year: "", remind_days: 3, note: "" };
-    this._state.dialog = event ? { ...base, ...event, year: event.year || "" } : base;
+    const base = { name: "", type: "sinh_nhat", calendar: "solar", day: "", month: "", year: "", repeat: true, remind_days: 3, note: "" };
+    this._state.dialog = event ? { ...base, ...event, year: event.year || "", repeat: event.repeat !== false } : base;
+    // Sự kiện mới: đổi loại thì tự đổi lịch (giỗ -> âm lịch) cho tới khi người dùng tự chọn lịch.
+    this._calendarTouched = Boolean(event);
     this._state.dialogError = "";
     this._state.confirmDelete = false;
     this._render();
@@ -337,6 +347,7 @@ class LichVietPanel extends HTMLElement {
       day: val("day"),
       month: val("month"),
       year: val("year"),
+      repeat: val("repeat") !== "once",
       remind_days: val("remind") === "" ? 0 : val("remind"),
       note: val("note").trim(),
     };
@@ -351,6 +362,7 @@ class LichVietPanel extends HTMLElement {
     if (day > maxDay) return ERRORS.date_invalid;
     if (ev.year !== "" && (!Number.isInteger(Number(ev.year)) || Number(ev.year) < 1800 || Number(ev.year) > 2199))
       return ERRORS.year_invalid;
+    if (!ev.repeat && ev.year === "") return ERRORS.year_required;
     const remind = Number(ev.remind_days);
     if (!Number.isInteger(remind) || remind < 0 || remind > 60) return ERRORS.remind_invalid;
     return "";
@@ -426,8 +438,20 @@ class LichVietPanel extends HTMLElement {
   }
 
   _onChange(ev) {
-    if (ev.target && ev.target.id === "f-calendar" && this._state.dialog) {
+    const id = ev.target && ev.target.id;
+    if (!this._state.dialog || !id) return;
+    if (id === "f-calendar") {
+      this._calendarTouched = true;
       this._state.dialog = { ...this._state.dialog, ...this._readForm() };
+    } else if (id === "f-type") {
+      const type = ev.target.value;
+      const name = this.shadowRoot.querySelector("#f-name");
+      if (name) name.placeholder = TYPE_PLACEHOLDERS[type] || "";
+      const cal = this.shadowRoot.querySelector("#f-calendar");
+      if (cal && !this._calendarTouched) cal.value = TYPE_CALENDAR[type] || "solar";
+    } else if (id === "f-repeat") {
+      const label = this.shadowRoot.querySelector("#f-year-label");
+      if (label) label.firstChild.textContent = ev.target.value === "once" ? "Năm (bắt buộc)" : "Năm (không bắt buộc)";
     }
   }
 
@@ -436,9 +460,14 @@ class LichVietPanel extends HTMLElement {
     return `<span class="badge cat-${esc(e.category)} ${extra}" title="${esc(e.name)}"><ha-icon icon="${esc(e.icon)}"></ha-icon></span>`;
   }
 
-  _yearsText(e) {
+  _yearsLabel(e) {
     if (!e.years) return "";
-    return e.icon === TYPE_ICONS.sinh_nhat ? ` · ${e.years} tuổi` : ` · ${e.years} năm`;
+    return e.event_type === "sinh_nhat" ? `${e.years} tuổi` : `${e.years} năm`;
+  }
+
+  _yearsTag(e) {
+    const label = this._yearsLabel(e);
+    return label ? `<span class="tag">${esc(label)}</span>` : "";
   }
 
   _renderHero() {
@@ -450,7 +479,7 @@ class LichVietPanel extends HTMLElement {
     const events = info.events
       .map(
         (e) =>
-          `<div class="day-event">${this._badge(e)}<span>${esc(e.name)}${esc(this._yearsText(e))}${
+          `<div class="day-event">${this._badge(e)}<span>${esc(e.name)}</span>${this._yearsTag(e)}<span>${
             e.off ? ' <span class="muted">· nghỉ lễ</span>' : ""
           }</span></div>`
       )
@@ -503,7 +532,7 @@ class LichVietPanel extends HTMLElement {
           .slice(0, MAX_LINES)
           .map(
             (e) => `<span class="ev${e.off ? " off" : ""}" data-cat="${esc(e.category)}">` +
-              `<span class="dot dot-${esc(e.category)}"></span><span class="t">${esc(e.short || e.name)}</span></span>`
+              `<span class="dot dot-${esc(e.category)}"></span><span class="t">${esc(e.short || e.name)}</span>${this._yearsTag(e)}</span>`
           )
           .join("");
         const more = named.length > MAX_LINES ? `<span class="more">+${named.length - MAX_LINES} sự kiện</span>` : "";
@@ -524,7 +553,7 @@ class LichVietPanel extends HTMLElement {
     const rows = items
       .map(
         (u) => `<div class="row">${this._badge(u)}
-          <div class="name"><div class="t">${esc(u.name)}${esc(this._yearsText(u))}</div>
+          <div class="name"><div class="t">${esc(u.name)} ${this._yearsTag(u)}</div>
           <div class="muted">${esc(u.weekday_name)} ${fmtDayMonth(u.date)}${u.lunar ? ` · ${esc(u.lunar)} âm` : ""}</div></div>
           <span class="left">${u.days_left === 1 ? "Ngày mai" : `${u.days_left} ngày`}</span></div>`
       )
@@ -542,7 +571,9 @@ class LichVietPanel extends HTMLElement {
         const remind = e.remind_days ? ` · nhắc trước ${e.remind_days} ngày` : "";
         return `<div class="row"><span class="badge cat-family"><ha-icon icon="${esc(e.icon)}"></ha-icon></span>
           <div class="name"><div class="t">${esc(e.name)}</div>
-          <div class="muted">${esc(TYPE_LABELS[e.type] || "")} · ${when}${e.year ? ` · từ ${e.year}` : ""}${remind}</div></div>
+          <div class="muted">${esc(TYPE_LABELS[e.type] || "")} · ${when}${
+            e.repeat === false ? ` · một lần, năm ${e.year}` : `${e.year ? ` · từ ${e.year}` : ""} · hằng năm`
+          }${remind}</div></div>
           ${admin ? `<button class="icon" data-action="edit" data-id="${esc(e.id)}" aria-label="Sửa"><ha-icon icon="mdi:pencil"></ha-icon></button>` : ""}
         </div>`;
       })
@@ -593,12 +624,13 @@ class LichVietPanel extends HTMLElement {
     return `<div class="overlay"><div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dlg-title">
       <h3 id="dlg-title">${d.id ? "Sửa sự kiện" : "Thêm sự kiện gia đình"}</h3>
       <div class="form">
-        <label class="full">Tên<input id="f-name" maxlength="80" placeholder="Giỗ ông nội" value="${esc(d.name)}"></label>
+        <label class="full">Tên<input id="f-name" maxlength="80" placeholder="${esc(TYPE_PLACEHOLDERS[d.type] || "")}" value="${esc(d.name)}"></label>
         <label>Loại<select id="f-type">${types}</select></label>
-        <label>Theo lịch<select id="f-calendar">${opt("lunar", "Âm lịch", d.calendar)}${opt("solar", "Dương lịch", d.calendar)}</select></label>
+        <label>Theo lịch<select id="f-calendar">${opt("solar", "Dương lịch", d.calendar)}${opt("lunar", "Âm lịch", d.calendar)}</select></label>
         <label>Ngày<input id="f-day" type="number" min="1" max="31" inputmode="numeric" value="${esc(d.day)}"></label>
         <label>Tháng<input id="f-month" type="number" min="1" max="12" inputmode="numeric" value="${esc(d.month)}"></label>
-        <label>Năm (không bắt buộc)<input id="f-year" type="number" min="1800" max="2199" placeholder="2010" value="${esc(d.year)}"></label>
+        <label>Lặp lại<select id="f-repeat">${opt("yearly", "Hằng năm", d.repeat === false ? "once" : "yearly")}${opt("once", "Chỉ một lần", d.repeat === false ? "once" : "yearly")}</select></label>
+        <label id="f-year-label">${d.repeat === false ? "Năm (bắt buộc)" : "Năm (không bắt buộc)"}<input id="f-year" type="number" min="1800" max="2199" placeholder="1994" value="${esc(d.year)}"></label>
         <label>Nhắc trước (ngày)<input id="f-remind" type="number" min="0" max="60" value="${esc(d.remind_days)}"></label>
         <label class="full">Ghi chú<textarea id="f-note" rows="2" maxlength="200">${esc(d.note)}</textarea></label>
       </div>

@@ -42,8 +42,8 @@ CATEGORIES = (CAT_NATIONAL, CAT_LUNAR, CAT_MONTHLY, CAT_SOCIAL, CAT_INTERNATIONA
 
 # Loại sự kiện gia đình -> icon mặc định.
 FAMILY_TYPES = {
-    "gio": "mdi:candle",
     "sinh_nhat": "mdi:cake-variant",
+    "gio": "mdi:candle",
     "ky_niem": "mdi:heart-multiple",
     "khac": "mdi:star",
 }
@@ -170,6 +170,7 @@ class Occurrence:
     years: int | None = None  # số năm (giỗ lần thứ, tuổi, kỷ niệm)
     note: str = ""
     remind_days: int = 0
+    event_type: str | None = None  # loại sự kiện gia đình (sinh_nhat, gio, ky_niem, khac)
     lunar: LunarDate | None = field(default=None, repr=False)
 
     def as_dict(self) -> dict[str, Any]:
@@ -190,7 +191,7 @@ def normalize_custom_event(raw: dict[str, Any]) -> dict[str, Any]:
     name = str(raw.get("name", "")).strip()
     if not name:
         raise ValueError("name_required")
-    calendar = raw.get("calendar", "lunar")
+    calendar = raw.get("calendar", "solar")
     if calendar not in ("lunar", "solar"):
         raise ValueError("calendar_invalid")
     try:
@@ -208,6 +209,10 @@ def normalize_custom_event(raw: dict[str, Any]) -> dict[str, Any]:
     etype = raw.get("type", "khac")
     if etype not in FAMILY_TYPES:
         raise ValueError("type_invalid")
+    repeat = raw.get("repeat", True)
+    repeat = repeat not in (False, "false", "False", 0, "0", "once")
+    if not repeat and year is None:
+        raise ValueError("year_required")
     remind = int(raw.get("remind_days") or 0)
     if not 0 <= remind <= 60:
         raise ValueError("remind_invalid")
@@ -219,13 +224,25 @@ def normalize_custom_event(raw: dict[str, Any]) -> dict[str, Any]:
         "day": day,
         "month": month,
         "year": year,
+        "repeat": repeat,
         "remind_days": remind,
         "icon": str(raw.get("icon") or FAMILY_TYPES[etype]),
         "note": str(raw.get("note") or "")[:200],
     }
 
 
+def _custom_ref_year(ev: dict[str, Any], d: date, lunar: LunarDate) -> int:
+    """Năm dùng để so với năm của sự kiện: năm âm cho sự kiện âm lịch, năm dương cho dương lịch."""
+    return lunar.year if ev["calendar"] == "lunar" else d.year
+
+
 def _custom_matches(ev: dict[str, Any], d: date, lunar: LunarDate, mlen: int) -> bool:
+    if ev.get("year"):
+        ref_year = _custom_ref_year(ev, d, lunar)
+        if ref_year < ev["year"]:
+            return False  # chưa tới năm bắt đầu (vd. ngày cưới năm sau)
+        if not ev.get("repeat", True) and ref_year != ev["year"]:
+            return False  # sự kiện chỉ một lần
     if ev["calendar"] == "solar":
         if ev["month"] == 2 and ev["day"] == 29:
             leap_year = d.year % 4 == 0 and (d.year % 100 != 0 or d.year % 400 == 0)
@@ -240,11 +257,14 @@ def _custom_matches(ev: dict[str, Any], d: date, lunar: LunarDate, mlen: int) ->
 
 
 def _custom_years(ev: dict[str, Any], d: date, lunar: LunarDate) -> int | None:
-    if not ev.get("year"):
+    """Số năm tính từ năm đã nhập (sinh nhật: tuổi; giỗ, kỷ niệm: năm thứ N).
+
+    Đúng năm bắt đầu (ngày sinh, ngày cưới) và sự kiện chỉ một lần thì không ghi số.
+    """
+    if not ev.get("year") or not ev.get("repeat", True):
         return None
-    ref_year = lunar.year if ev["calendar"] == "lunar" else d.year
-    years = ref_year - ev["year"]
-    return years if years >= 0 else None
+    years = _custom_ref_year(ev, d, lunar) - ev["year"]
+    return years if years > 0 else None
 
 
 # --------------------------------------------------------------- tìm sự kiện
@@ -291,6 +311,7 @@ def events_on(d: date, custom: Iterable[dict[str, Any]] = (), *, monthly: bool =
                         years=_custom_years(ev, d, lunar),
                         note=ev.get("note", ""),
                         remind_days=int(ev.get("remind_days") or 0),
+                        event_type=ev.get("type", "khac"),
                         lunar=lunar,
                     )
                 )

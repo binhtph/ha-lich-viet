@@ -15,10 +15,11 @@ Integration này thêm lịch âm Việt Nam, ngày lễ và sự kiện gia đ�
   - Dương lịch: Tết Dương lịch, 3/2, 14/2, 8/3, 30/4, 1/5, 19/5, 1/6, 28/6, 27/7, Quốc khánh, 20/10, 20/11, 22/12, Giáng sinh.
   - Âm lịch: Tết Nguyên Đán (mùng 1–3), Rằm tháng Giêng, Hàn thực, Giỗ Tổ, Phật Đản, Đoan Ngọ, Vu Lan, Trung thu, Hạ nguyên, ông Công ông Táo, Giao thừa.
   - Tết Thanh minh (tính theo tiết khí), và mùng 1, rằm hằng tháng (kể cả tháng nhuận).
-- **Sự kiện gia đình**: giỗ, sinh nhật, kỷ niệm, theo âm hoặc dương lịch, lặp lại hằng năm, có nhắc trước N ngày.
-  - Giỗ ngày 30 âm mà năm đó tháng thiếu thì tính vào ngày 29.
-  - Sinh nhật 29/2 thì năm không nhuận tính vào 28/2.
-  - Nếu nhập năm thì tự tính "giỗ năm thứ N" hoặc "N tuổi".
+- **Sự kiện gia đình**: sinh nhật, giỗ, kỷ niệm, theo dương hoặc âm lịch, có nhắc trước N ngày.
+  - Chọn **lặp lại hằng năm** hoặc **chỉ một lần** (sự kiện một lần phải nhập năm).
+  - Nhập năm thì có **tag số năm**: sinh nhật 21/12/1994 năm 2026 hiện "32 tuổi"; giỗ, kỷ niệm hiện "N năm". Đúng năm bắt đầu (ngày sinh, ngày cưới) không ghi số; năm sau là "1 năm".
+  - Lùi lịch về **trước năm đã nhập** thì không thấy sự kiện. Ngày cưới nhập năm sau thì chỉ hiện từ năm đó trở đi. Sự kiện âm lịch so theo năm âm.
+  - Giỗ ngày 30 âm mà năm đó tháng thiếu thì tính vào ngày 29. Sinh nhật 29/2 thì năm không nhuận tính vào 28/2.
 - **Ảnh nền phong cảnh** lấy từ thư mục ảnh của bạn (ưu tiên thư mục theo dịp lễ), kết hợp ảnh Unsplash nếu muốn.
 - **Bản tin buổi sáng** gửi qua Telegram và app điện thoại. Mỗi kênh có công tắc bật/tắt riêng.
 

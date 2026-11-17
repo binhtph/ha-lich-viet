@@ -1,3 +1,14 @@
+# v1.1.0
+
+## Thêm
+- Sự kiện gia đình có tùy chọn **Lặp lại hằng năm / Chỉ một lần** (sự kiện một lần phải nhập năm).
+- **Tag số năm** trên lưới tháng, danh sách sắp tới, thẻ ngày và bản tin: sinh nhật ghi "N tuổi", giỗ và kỷ niệm ghi "N năm".
+
+## Thay đổi
+- Sự kiện có nhập năm không còn hiện ở những năm trước năm đó (vd. ngày cưới năm sau chỉ hiện từ năm đó). Năm bắt đầu không ghi số, năm sau là "1 năm".
+- Hộp thoại thêm sự kiện: mặc định loại **Sinh nhật**, lịch **Dương lịch**. Thứ tự loại: Sinh nhật, Giỗ, Kỷ niệm, Khác. Chọn Giỗ thì tự chuyển sang Âm lịch. Ô tên gợi ý theo loại, vd. "Sinh nhật con".
+- Bản tin ghi "tuổi" hay "năm" theo loại sự kiện thay vì đoán theo tên.
+
 # v1.0.0
 
 Phiên bản đầu tiên của Lịch Việt cho Home Assistant.

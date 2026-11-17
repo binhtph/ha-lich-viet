@@ -13,6 +13,7 @@ from homeassistant.util import dt as dt_util
 from .entity import LichVietEntity
 from .events import Occurrence, events_between
 from .lunar import MAX_YEAR, MIN_YEAR
+from .notifier import years_label
 
 PARALLEL_UPDATES = 0
 _MAX_RANGE_DAYS = 800
@@ -27,8 +28,8 @@ async def async_setup_entry(
 def _to_event(occ: Occurrence) -> CalendarEvent:
     lunar = occ.as_dict()["lunar"]
     details = [f"Âm lịch: {lunar}"] if lunar else []
-    if occ.years:
-        details.append(f"Năm thứ: {occ.years}")
+    if label := years_label(occ.years, occ.event_type):
+        details.append(label)
     if occ.off:
         details.append("Ngày nghỉ lễ")
     if occ.note:

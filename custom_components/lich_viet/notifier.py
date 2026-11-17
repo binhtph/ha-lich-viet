@@ -40,12 +40,16 @@ def channels(options: dict[str, Any]) -> list[tuple[str, str]]:
     ]
 
 
-def _years_text(occ: Occurrence | dict[str, Any]) -> str:
-    years = occ["years"] if isinstance(occ, dict) else occ.years
+def years_label(years: int | None, event_type: str | None) -> str:
+    """'32 tuổi' cho sinh nhật, '16 năm' cho giỗ/kỷ niệm/khác; rỗng nếu không có số."""
     if not years:
         return ""
-    name = (occ["name"] if isinstance(occ, dict) else occ.name).lower()
-    return f" ({years} tuổi)" if "sinh nhật" in name else f" ({years} năm)"
+    return f"{years} tuổi" if event_type == "sinh_nhat" else f"{years} năm"
+
+
+def _years_text(occ: Occurrence) -> str:
+    label = years_label(occ.years, occ.event_type)
+    return f" ({label})" if label else ""
 
 
 def build_morning_message(

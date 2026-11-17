@@ -57,3 +57,17 @@ def test_today_first_day_and_family_reminder():
     assert "Hôm nay:\n• Mùng 1 tháng 11" in msg
     assert "• Giỗ bà: còn 3 ngày (Thứ Bảy 12/12, 4/11 âm)" in msg
     assert has is True
+
+
+def test_years_label_by_event_type():
+    be = {"id": "b", "name": "Bé Bin", "type": "sinh_nhat", "calendar": "solar", "day": 21, "month": 12,
+          "year": 1994, "repeat": True, "remind_days": 1, "icon": "mdi:cake-variant", "note": ""}
+    _, msg, _ = _msg(date(2026, 12, 20), custom=[be], holiday=0, monthly=0)
+    assert "• Bé Bin (32 tuổi): ngày mai (Thứ Hai 21/12, 13/11 âm)" in msg
+    _, msg, _ = _msg(date(2026, 12, 21), custom=[be], holiday=0, monthly=0)
+    assert "Hôm nay:\n• Bé Bin (32 tuổi)" in msg
+    cuoi = dict(be, id="c", name="Ngày cưới", type="ky_niem", year=2027, day=10, month=1, remind_days=1)
+    _, msg, _ = _msg(date(2027, 1, 9), custom=[cuoi], holiday=0, monthly=0)
+    assert "• Ngày cưới: ngày mai" in msg  # năm đầu tiên: không ghi số
+    _, msg, _ = _msg(date(2028, 1, 9), custom=[cuoi], holiday=0, monthly=0)
+    assert "• Ngày cưới (1 năm): ngày mai" in msg

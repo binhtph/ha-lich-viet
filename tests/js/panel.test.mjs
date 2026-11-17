@@ -249,9 +249,69 @@ test("admin thêm sự kiện: kiểm tra dữ liệu trước khi gửi", async
   await t.click(t.$('[data-action="save"]'));
   const save = t.calls.find((c) => c.type === "lich_viet/events/save");
   assert.deepEqual(save.event, { id: "", name: "Sinh nhật Bin", type: "sinh_nhat", calendar: "solar", day: 30, month: 4,
-    year: 2020, remind_days: 2, note: "" });
+    year: 2020, repeat: true, remind_days: 2, note: "" });
   assert.equal(t.$(".dialog"), null, "đóng hộp thoại sau khi lưu");
   assert.match(t.$$(".cols .card")[1].textContent, /Sinh nhật Bin/);
+  t.cleanup();
+});
+
+test("hộp thoại thêm mới: mặc định Sinh nhật, Dương lịch; thứ tự loại; đổi sang Giỗ thì tự chọn Âm lịch", async () => {
+  const t = setup();
+  await settle();
+  await t.click(t.$('[data-action="add"]'));
+  assert.deepEqual([...t.$$("#f-type option")].map((o) => o.textContent), ["Sinh nhật", "Giỗ", "Kỷ niệm", "Khác"]);
+  assert.equal(t.$("#f-type").value, "sinh_nhat");
+  assert.equal(t.$("#f-calendar").value, "solar");
+  assert.equal(t.$("#f-repeat").value, "yearly");
+  assert.equal(t.$("#f-name").getAttribute("placeholder"), "Sinh nhật con");
+  const change = (sel, value) => {
+    const el = t.$(sel);
+    el.value = value;
+    el.dispatchEvent(new t.window.Event("change", { bubbles: true }));
+  };
+  change("#f-type", "gio");
+  assert.equal(t.$("#f-calendar").value, "lunar");
+  assert.equal(t.$("#f-name").placeholder, "Giỗ ông nội");
+  // người dùng tự chọn lịch thì không bị đổi theo loại nữa
+  change("#f-calendar", "solar");
+  change("#f-type", "gio");
+  assert.equal(t.$("#f-calendar").value, "solar");
+  change("#f-repeat", "once");
+  assert.match(t.$("#f-year-label").textContent, /Năm \(bắt buộc\)/);
+  t.cleanup();
+});
+
+test("sự kiện chỉ một lần: bắt buộc nhập năm, gửi repeat=false", async () => {
+  const t = setup();
+  await settle();
+  await t.click(t.$('[data-action="add"]'));
+  t.setVal("name", "Họp lớp");
+  t.setVal("type", "khac");
+  t.setVal("day", "5");
+  t.setVal("month", "6");
+  t.setVal("repeat", "once");
+  const before = t.calls.length;
+  await t.click(t.$('[data-action="save"]'));
+  assert.equal(t.$(".error").textContent, "Sự kiện chỉ một lần cần nhập năm");
+  assert.equal(t.calls.length, before);
+  t.setVal("year", "2027");
+  await t.click(t.$('[data-action="save"]'));
+  const save = t.calls.find((c) => c.type === "lich_viet/events/save");
+  assert.equal(save.event.repeat, false);
+  assert.equal(save.event.year, 2027);
+  assert.equal(save.event.calendar, "solar");
+  t.cleanup();
+});
+
+test("tag số năm: danh sách sắp tới, ô lịch, sự kiện gia đình", async () => {
+  const t = setup();
+  await settle();
+  const upcomingTags = [...t.$$(".cols .card")[0].querySelectorAll(".tag")].map((n) => n.textContent);
+  assert.deepEqual(upcomingTags, ["16 năm"]);
+  assert.match(t.$$(".cols .card")[1].textContent, /từ 2010 · hằng năm/);
+  await t.click(t.$('[data-action="next"]'));
+  const dec23 = t.$('[data-date="2026-12-23"]');
+  assert.equal(dec23.querySelector(".ev .tag").textContent, "16 năm");
   t.cleanup();
 });
 

@@ -444,3 +444,23 @@ async def test_only_when_events_off_sends_every_day(hass, tz, freezer):
     await _tick(hass, freezer, "2026-11-17 06:30:00+07:00")
     assert len(tg) == 1 and "Hôm nay" not in tg[0].data["message"]
     assert date(2026, 11, 17).isoformat() == "2026-11-17"
+
+
+async def test_websocket_one_time_and_year_bounds(hass, tz, freezer, hass_ws_client, hass_admin_user):
+    freezer.move_to("2026-11-17 08:00:00+07:00")
+    await _setup(hass)
+    ws = await hass_ws_client(hass, await _token(hass, hass_admin_user))
+    await ws.send_json({"id": 1, "type": "lich_viet/events/save",
+                        "event": {"name": "Họp lớp", "type": "khac", "day": 5, "month": 6, "repeat": False}})
+    assert (await ws.receive_json())["error"]["message"] == "year_required"
+    await ws.send_json({"id": 2, "type": "lich_viet/events/save", "event": {
+        "name": "Sinh nhật con", "type": "sinh_nhat", "day": 21, "month": 12, "year": 1994}})
+    saved = (await ws.receive_json())["result"]
+    assert saved["calendar"] == "solar" and saved["repeat"] is True
+    await ws.send_json({"id": 3, "type": "lich_viet/upcoming", "days": 40})
+    sn = next(u for u in (await ws.receive_json())["result"] if u["name"] == "Sinh nhật con")
+    assert sn["years"] == 32 and sn["event_type"] == "sinh_nhat"
+    # tháng 12/1993 (trước năm sinh) không có sự kiện
+    await ws.send_json({"id": 4, "type": "lich_viet/month", "year": 1993, "month": 12})
+    days = (await ws.receive_json())["result"]["days"]
+    assert not any(e["name"] == "Sinh nhật con" for d in days for e in d["events"])

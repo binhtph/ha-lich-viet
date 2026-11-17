@@ -205,3 +205,64 @@ def test_short_names_for_calendar_cells():
     for h in HOLIDAYS:
         occ = [e for e in events_between(date(2026, 1, 1), date(2027, 2, 28), monthly=False) if e.id == h.id]
         assert occ and len(occ[0].as_dict()["short"]) <= 20, h.id
+
+
+# ------------------------------------------------------------------ năm bắt đầu, chỉ một lần
+SN_1994 = {"id": "sn", "name": "Sinh nhật con", "type": "sinh_nhat", "calendar": "solar", "day": 21, "month": 12,
+           "year": 1994, "repeat": True, "remind_days": 1, "icon": "mdi:cake-variant", "note": ""}
+
+
+def _custom(d, ev):
+    return [o for o in events_on(d, [ev]) if o.source == "custom"]
+
+
+def test_birthday_age_and_not_before_birth_year():
+    occ = _custom(date(2026, 12, 21), SN_1994)
+    assert len(occ) == 1 and occ[0].years == 32 and occ[0].event_type == "sinh_nhat"
+    assert occ[0].as_dict()["event_type"] == "sinh_nhat"
+    birth = _custom(date(1994, 12, 21), SN_1994)
+    assert len(birth) == 1 and birth[0].years is None  # đúng ngày sinh: không ghi số
+    assert _custom(date(1993, 12, 21), SN_1994) == []  # trước năm sinh: không hiện
+
+
+def test_wedding_in_future_year():
+    cuoi = {"id": "w", "name": "Kỷ niệm ngày cưới", "type": "ky_niem", "calendar": "solar", "day": 10, "month": 1,
+            "year": 2027, "repeat": True, "remind_days": 3, "icon": "mdi:heart-multiple", "note": ""}
+    assert [o for o in events_between(date(2026, 1, 1), date(2026, 12, 31), [cuoi]) if o.source == "custom"] == []
+    assert _custom(date(2027, 1, 10), cuoi)[0].years is None
+    assert _custom(date(2028, 1, 10), cuoi)[0].years == 1
+    assert _custom(date(2036, 1, 10), cuoi)[0].years == 9
+
+
+def test_lunar_event_year_uses_lunar_year():
+    from custom_components.lich_viet.lunar import lunar_to_solar
+
+    gio = dict(GIO_ONG, id="g26", year=2026)
+    assert _custom(lunar_to_solar(15, 11, 2026), gio)[0].years is None
+    assert _custom(lunar_to_solar(15, 11, 2025), gio) == []  # 15/11 âm năm Ất Tỵ: trước năm bắt đầu
+    assert _custom(lunar_to_solar(15, 11, 2027), gio)[0].years == 1
+
+
+def test_one_time_event():
+    hop = {"id": "o", "name": "Họp lớp", "type": "khac", "calendar": "solar", "day": 5, "month": 6, "year": 2027,
+           "repeat": False, "remind_days": 2, "icon": "mdi:star", "note": ""}
+    hits = [o.date for o in events_between(date(2026, 1, 1), date(2029, 12, 31), [hop]) if o.source == "custom"]
+    assert hits == [date(2027, 6, 5)]
+    assert _custom(date(2027, 6, 5), hop)[0].years is None
+
+
+def test_normalize_repeat_and_defaults():
+    ev = normalize_custom_event({"name": "Sinh nhật con", "day": 21, "month": 12, "type": "sinh_nhat"})
+    assert ev["calendar"] == "solar" and ev["repeat"] is True and ev["year"] is None
+    once = normalize_custom_event({"name": "x", "day": 1, "month": 1, "year": 2027, "repeat": False})
+    assert once["repeat"] is False
+    with pytest.raises(ValueError, match="year_required"):
+        normalize_custom_event({"name": "x", "day": 1, "month": 1, "repeat": False})
+    # dữ liệu cũ (chưa có repeat) vẫn là lặp hằng năm
+    assert normalize_custom_event({"name": "x", "day": 1, "month": 1, "calendar": "lunar"})["repeat"] is True
+
+
+def test_family_type_order():
+    from custom_components.lich_viet.events import FAMILY_TYPES
+
+    assert list(FAMILY_TYPES) == ["sinh_nhat", "gio", "ky_niem", "khac"]
