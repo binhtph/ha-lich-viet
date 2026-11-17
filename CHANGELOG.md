@@ -1,3 +1,8 @@
+# v1.1.1
+
+## Bảo mật
+- Chỉ gửi Unsplash access key tới `https://api.unsplash.com`. Nếu `download_location` trong phản hồi của Unsplash trỏ sang host khác thì bỏ qua, không gửi header `Authorization`. Không theo redirect khi báo lượt tải.
+
 # v1.1.0
 
 ## Thêm

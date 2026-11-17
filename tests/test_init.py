@@ -354,6 +354,48 @@ async def test_background_unsplash_error_falls_back(hass, tz, freezer, hass_ws_c
     assert (await ws.receive_json())["result"] is None
 
 
+BAD_DOWNLOAD = [
+    "https://evil.example.com/photos/p1/download",
+    "http://api.unsplash.com/photos/p1/download",
+    "https://api.unsplash.com.evil.example/photos/p1/download",
+    "https://user:pass@api.unsplash.com/photos/p1/download",
+    "https://api.unsplash.com:8443/photos/p1/download",
+]
+
+
+@pytest.mark.parametrize("bad", BAD_DOWNLOAD)
+async def test_background_unsplash_key_only_sent_to_api(
+    hass, tz, freezer, hass_ws_client, aioclient_mock, hass_admin_user, caplog, bad
+):
+    """Access key chỉ gửi tới https://api.unsplash.com, kể cả khi download_location bị đổi."""
+    freezer.move_to("2026-11-17 08:00:00+07:00")
+    entry = await _setup(hass)
+    aioclient_mock.get(UNSPLASH, json=[{
+        "id": "p1", "urls": {"regular": "https://images.unsplash.com/photo-1?ixid=x"},
+        "user": {"name": "A"}, "links": {"download_location": bad},
+    }])
+    aioclient_mock.get(bad, json={})
+    await _options(hass, entry, "background", {"background_enabled": True, "background_mode": "daily",
+                                               "unsplash_key": "KEY", "unsplash_query": "Vietnam",
+                                               "unsplash_mix": False, "panel_opacity": 80})
+    ws = await hass_ws_client(hass, await _token(hass, hass_admin_user))
+    await ws.send_json({"id": 1, "type": "lich_viet/background"})
+    assert (await ws.receive_json())["result"]["source"] == "unsplash"
+    await hass.async_block_till_done()
+    urls = [str(c[1]) for c in aioclient_mock.mock_calls]
+    assert urls and all(u.startswith(UNSPLASH) for u in urls), urls
+    assert "Bỏ qua download_location" in caplog.text
+
+
+def test_is_unsplash_api():
+    from custom_components.lich_viet.background import _is_unsplash_api
+
+    assert _is_unsplash_api("https://api.unsplash.com/photos/p1/download?ixid=x")
+    assert _is_unsplash_api("https://API.Unsplash.com:443/photos/p1/download")
+    for bad in BAD_DOWNLOAD + ["", None, 123, "api.unsplash.com/photos/p1", "https://api.unsplash.com:abc/x"]:
+        assert not _is_unsplash_api(bad), bad
+
+
 # ------------------------------------------------------------------ thông báo
 async def test_morning_report_and_reminders(hass, tz, freezer, hass_ws_client, hass_admin_user):
     tg = async_mock_service(hass, "telegram_bot", "send_message")

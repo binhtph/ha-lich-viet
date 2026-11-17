@@ -9,7 +9,7 @@ import logging
 from pathlib import Path
 import random
 from typing import Any
-from urllib.parse import quote
+from urllib.parse import quote, urlsplit
 
 from aiohttp import ClientError, web
 
@@ -34,6 +34,7 @@ from .events import BACKGROUND_FOLDERS, background_folders_for
 
 _LOGGER = logging.getLogger(__name__)
 UNSPLASH_API = "https://api.unsplash.com/photos/random"
+UNSPLASH_API_HOST = "api.unsplash.com"
 UTM = "utm_source=home_assistant_lich_viet&utm_medium=referral"
 LINK_TTL = timedelta(hours=12)
 
@@ -179,11 +180,17 @@ class BackgroundManager:
     async def _async_track_unsplash_download(self, item: dict[str, Any]) -> None:
         """Unsplash yêu cầu báo 'download' khi ảnh được dùng."""
         key = (self.options.get(CONF_UNSPLASH_KEY) or "").strip()
-        if not key or not item.get("download_location"):
+        url = item.get("download_location")
+        if not key or not url:
+            return
+        if not _is_unsplash_api(url):
+            # Không gửi access key tới host khác api.unsplash.com.
+            _LOGGER.warning("Bỏ qua download_location không thuộc %s: %s", UNSPLASH_API_HOST, url)
             return
         try:
             async with async_get_clientsession(self.hass).get(
-                item["download_location"], headers={"Authorization": f"Client-ID {key}"}, timeout=10
+                url, headers={"Authorization": f"Client-ID {key}"}, timeout=10,
+                allow_redirects=False,
             ):
                 pass
         except (ClientError, TimeoutError):
@@ -200,6 +207,24 @@ class BackgroundManager:
         if base not in path.parents or not path.is_file():
             return None
         return path
+
+
+def _is_unsplash_api(url: Any) -> bool:
+    """URL là https://api.unsplash.com/... (không user/pass, cổng mặc định)."""
+    if not isinstance(url, str):
+        return False
+    try:
+        parts = urlsplit(url)
+        port = parts.port
+    except ValueError:
+        return False
+    return (
+        parts.scheme == "https"
+        and parts.hostname == UNSPLASH_API_HOST
+        and parts.username is None
+        and parts.password is None
+        and port in (None, 443)
+    )
 
 
 def _unsplash_item(photo: dict[str, Any]) -> dict[str, Any]:
