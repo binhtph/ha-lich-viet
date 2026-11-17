@@ -1,5 +1,13 @@
 # Lịch Việt cho Home Assistant (`lich_viet`)
 
+[![HACS](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://hacs.xyz/)
+[![Release](https://img.shields.io/github/v/release/binhtph/ha-lich-viet)](https://github.com/binhtph/ha-lich-viet/releases)
+[![Validate](https://github.com/binhtph/ha-lich-viet/actions/workflows/validate.yml/badge.svg)](https://github.com/binhtph/ha-lich-viet/actions/workflows/validate.yml)
+[![Tests](https://github.com/binhtph/ha-lich-viet/actions/workflows/tests.yml/badge.svg)](https://github.com/binhtph/ha-lich-viet/actions/workflows/tests.yml)
+[![License](https://img.shields.io/github/license/binhtph/ha-lich-viet)](LICENSE)
+
+[![Mở trong HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=binhtph&repository=ha-lich-viet&category=integration)
+
 Integration này thêm lịch âm Việt Nam, ngày lễ và sự kiện gia đình vào Home Assistant, kèm một **trang Lịch Việt trên sidebar** cho mọi người trong nhà cùng xem. Phần tính lịch viết thuần Python, không cần thư viện ngoài. Giao diện là một file JavaScript dùng thẳng, không cần build.
 
 - **Đổi ngày âm ↔ dương** theo thuật toán thiên văn của Hồ Ngọc Đức, tính theo múi giờ Việt Nam (UTC+7), đúng cả những năm Việt Nam ăn Tết khác Trung Quốc (1985, 2007, 2030). Có tháng nhuận, can chi của ngày/tháng/năm, con giáp, 24 tiết khí và giờ hoàng đạo.
@@ -16,7 +24,7 @@ Integration này thêm lịch âm Việt Nam, ngày lễ và sự kiện gia đ�
 
 ## Cài đặt
 
-**HACS:** HACS → ⋮ → Custom repositories → dán link repo, chọn loại *Integration* → Download → khởi động lại Home Assistant.
+**HACS:** bấm nút **Mở trong HACS** ở đầu trang (hoặc HACS → ⋮ → Custom repositories → dán link repo, chọn loại *Integration*) → Download → khởi động lại Home Assistant. Khi repo đã có trong kho mặc định của HACS, chỉ cần tìm tên integration trong HACS.
 
 **Thủ công:** chép `custom_components/lich_viet` vào `/config/custom_components/`, rồi khởi động lại Home Assistant.
 
@@ -133,3 +141,7 @@ Phần tính lịch được kiểm thử bằng các cách sau:
 
 - Thuật toán thiên văn là gần đúng. Ngoài khoảng 1979–2090, hiếm khi có tháng mà thời điểm trăng mới rơi sát nửa đêm, khiến ngày đầu tháng lệch 1 ngày.
 - Ngày nghỉ bù và kỳ nghỉ Tết theo quyết định của Chính phủ từng năm không được tính; chỉ đánh dấu các ngày lễ cố định.
+
+## Giấy phép
+
+MIT. Xem file [LICENSE](LICENSE).
