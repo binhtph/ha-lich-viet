@@ -1,0 +1,118 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Lịch Việt",
+        "description": "Thêm trang Lịch Việt vào sidebar, các sensor âm lịch, ngày lễ và lịch sự kiện. Thông báo và ảnh nền chỉnh sau trong Configure."
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Lịch Việt đã được cài."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Cấu hình Lịch Việt",
+        "menu_options": {
+          "notify": "Thông báo",
+          "background": "Ảnh nền",
+          "save": "Lưu và đóng"
+        }
+      },
+      "notify": {
+        "title": "Thông báo",
+        "data": {
+          "telegram_targets": "Telegram (notify entity của bot)",
+          "mobile_targets": "App điện thoại (notify.mobile_app_*)",
+          "report_time": "Giờ gửi bản tin",
+          "only_when_events": "Chỉ gửi khi có sự kiện hoặc lời nhắc",
+          "holiday_remind_days": "Nhắc trước ngày lễ (ngày)"
+        },
+        "data_description": {
+          "telegram_targets": "Bật/tắt từng kênh bằng công tắc trong thiết bị Lịch Việt.",
+          "holiday_remind_days": "0 = không nhắc ngày lễ. Giỗ, sinh nhật nhắc theo số ngày cài riêng từng sự kiện."
+        }
+      },
+      "background": {
+        "title": "Ảnh nền",
+        "data": {
+          "background_enabled": "Hiện ảnh nền",
+          "background_mode": "Đổi ảnh",
+          "background_folder": "Thư mục ảnh (để trống = /media/lich_viet)",
+          "unsplash_key": "Unsplash Access Key",
+          "unsplash_query": "Từ khóa tìm ảnh Unsplash",
+          "unsplash_mix": "Trộn ảnh Unsplash với ảnh thư mục",
+          "panel_opacity": "Độ đặc của các thẻ trên ảnh"
+        },
+        "data_description": {
+          "background_folder": "Trong thư mục có các thư mục con: chung, tet, trung_thu, quoc_khanh, giai_phong, giang_sinh, vu_lan. Dịp lễ ưu tiên thư mục của dịp đó.",
+          "unsplash_key": "Đăng ký miễn phí tại unsplash.com/developers. Để trống nếu chỉ dùng ảnh trong thư mục.",
+          "unsplash_mix": "Tắt: chỉ dùng Unsplash khi thư mục trống."
+        }
+      }
+    }
+  },
+  "selector": {
+    "background_mode": {
+      "options": {
+        "daily": "Mỗi ngày một ảnh (cả nhà thấy giống nhau)",
+        "random": "Mỗi lần mở trang"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "lunar_date": {
+        "name": "Âm lịch hôm nay"
+      },
+      "today_events": {
+        "name": "Sự kiện hôm nay"
+      },
+      "next_event": {
+        "name": "Sự kiện sắp tới"
+      },
+      "tet_countdown": {
+        "name": "Đếm ngược Tết"
+      },
+      "solar_term": {
+        "name": "Tiết khí"
+      }
+    },
+    "binary_sensor": {
+      "holiday": {
+        "name": "Ngày nghỉ lễ"
+      },
+      "first_day": {
+        "name": "Mùng 1"
+      },
+      "full_moon": {
+        "name": "Ngày rằm"
+      },
+      "has_event": {
+        "name": "Có sự kiện"
+      }
+    },
+    "calendar": {
+      "calendar": {
+        "name": "Lịch"
+      }
+    },
+    "switch": {
+      "morning_report": {
+        "name": "Gửi bản tin buổi sáng"
+      },
+      "channel_telegram": {
+        "name": "Gửi Telegram: {target}"
+      },
+      "channel_mobile": {
+        "name": "Gửi app: {target}"
+      }
+    },
+    "button": {
+      "send_report": {
+        "name": "Gửi thử bản tin"
+      }
+    }
+  }
+}

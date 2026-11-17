@@ -1,0 +1,118 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Vietnamese Lunar Calendar",
+        "description": "Adds the Lịch Việt sidebar page, lunar sensors, holidays and a calendar. Configure notifications and backgrounds later."
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Configure",
+        "menu_options": {
+          "notify": "Notifications",
+          "background": "Background",
+          "save": "Save and close"
+        }
+      },
+      "notify": {
+        "title": "Notifications",
+        "data": {
+          "telegram_targets": "Telegram (bot notify entities)",
+          "mobile_targets": "Mobile apps (notify.mobile_app_*)",
+          "report_time": "Report time",
+          "only_when_events": "Only send when there is an event or reminder",
+          "holiday_remind_days": "Remind before holidays (days)"
+        },
+        "data_description": {
+          "telegram_targets": "Toggle each channel with the device switches.",
+          "holiday_remind_days": "0 = off. Family events use their own reminder days."
+        }
+      },
+      "background": {
+        "title": "Background",
+        "data": {
+          "background_enabled": "Show background image",
+          "background_mode": "Change image",
+          "background_folder": "Image folder (empty = /media/lich_viet)",
+          "unsplash_key": "Unsplash access key",
+          "unsplash_query": "Unsplash search keywords",
+          "unsplash_mix": "Mix Unsplash with folder images",
+          "panel_opacity": "Card opacity over the image"
+        },
+        "data_description": {
+          "background_folder": "Sub-folders: chung, tet, trung_thu, quoc_khanh, giai_phong, giang_sinh, vu_lan.",
+          "unsplash_key": "Free at unsplash.com/developers. Leave empty to use folder images only.",
+          "unsplash_mix": "Off: Unsplash only when the folder is empty."
+        }
+      }
+    }
+  },
+  "selector": {
+    "background_mode": {
+      "options": {
+        "daily": "One image per day",
+        "random": "Every time the page opens"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "lunar_date": {
+        "name": "Lunar date"
+      },
+      "today_events": {
+        "name": "Events today"
+      },
+      "next_event": {
+        "name": "Next event"
+      },
+      "tet_countdown": {
+        "name": "Days until Tet"
+      },
+      "solar_term": {
+        "name": "Solar term"
+      }
+    },
+    "binary_sensor": {
+      "holiday": {
+        "name": "Public holiday"
+      },
+      "first_day": {
+        "name": "First lunar day"
+      },
+      "full_moon": {
+        "name": "Full moon day"
+      },
+      "has_event": {
+        "name": "Has event"
+      }
+    },
+    "calendar": {
+      "calendar": {
+        "name": "Calendar"
+      }
+    },
+    "switch": {
+      "morning_report": {
+        "name": "Morning report"
+      },
+      "channel_telegram": {
+        "name": "Telegram: {target}"
+      },
+      "channel_mobile": {
+        "name": "App: {target}"
+      }
+    },
+    "button": {
+      "send_report": {
+        "name": "Send report now"
+      }
+    }
+  }
+}

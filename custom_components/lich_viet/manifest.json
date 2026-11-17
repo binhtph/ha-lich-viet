@@ -1,0 +1,15 @@
+{
+  "domain": "lich_viet",
+  "name": "Vietnamese Lunar Calendar",
+  "codeowners": ["@binhtph"],
+  "config_flow": true,
+  "dependencies": ["http", "frontend", "panel_custom", "websocket_api"],
+  "after_dependencies": ["telegram_bot", "notify", "media_source"],
+  "documentation": "https://github.com/binhtph/ha-lich-viet",
+  "integration_type": "service",
+  "iot_class": "calculated",
+  "issue_tracker": "https://github.com/binhtph/ha-lich-viet/issues",
+  "requirements": [],
+  "single_config_entry": true,
+  "version": "1.0.0"
+}

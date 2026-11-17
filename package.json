@@ -1,0 +1,11 @@
+{
+  "name": "ha-lich-viet",
+  "private": true,
+  "description": "Kiểm thử giao diện trang Lịch Việt",
+  "scripts": {
+    "test": "node --test tests/js/panel.test.mjs"
+  },
+  "devDependencies": {
+    "jsdom": "^24.0.0"
+  }
+}
