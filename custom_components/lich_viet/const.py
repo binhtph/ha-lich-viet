@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 DOMAIN = "lich_viet"
-VERSION = "1.0.3"
+VERSION = "1.0.4"
 NAME = "Lịch Việt"
 
 PANEL_URL = "lich-viet"

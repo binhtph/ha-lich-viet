@@ -69,14 +69,14 @@ ha-icon { --mdc-icon-size:20px; }
 .grid { display:grid; grid-template-columns:repeat(7, minmax(0,1fr)); gap:5px; }
 .dow { text-align:center; font-size:12px; color:var(--secondary-text-color); padding:4px 0; }
 .dow.sun { color:var(--error-color, #db4437); }
-.cell { position:relative; min-height:86px; border-radius:10px; padding:5px 6px 5px; cursor:pointer; border:1px solid transparent;
+.cell { position:relative; min-height:86px; border-radius:10px; padding:5px 6px 20px; cursor:pointer; border:1px solid transparent;
   background:color-mix(in srgb, var(--card-background-color, #fff) 55%, transparent); text-align:left; width:100%;
   display:flex; flex-direction:column; align-items:stretch; justify-content:flex-start; gap:2px; overflow:hidden; }
 .cell:hover { border-color:var(--primary-color); }
-.cell .top { display:flex; align-items:baseline; justify-content:space-between; gap:4px; }
+.cell .top { display:flex; align-items:center; justify-content:space-between; gap:4px; min-height:24px; }
 .cell .s { font-size:17px; font-weight:500; line-height:1.2; }
-.cell .l { font-size:12px; color:var(--secondary-text-color); display:inline-flex; align-items:center; gap:2px; white-space:nowrap; }
-.cell .l ha-icon { --mdc-icon-size:12px; }
+.cell .l { position:absolute; right:7px; bottom:4px; font-size:12px; color:var(--secondary-text-color); white-space:nowrap; }
+.cell .top .badge { width:24px; height:24px; }
 .cell.out { opacity:.42; }
 .cell.sun .s, .cell.off .s { color:var(--error-color, #db4437); }
 .cell.moon-1 { background:rgba(239,159,39,.12); }
@@ -131,10 +131,12 @@ ha-icon { --mdc-icon-size:20px; }
   .page { padding:8px 8px 20px; }
   .cols { grid-template-columns:1fr; }
   .grid { gap:3px; }
-  .cell { min-height:64px; padding:3px 3px 4px; border-radius:8px; }
-  .cell .top { flex-direction:column; align-items:flex-start; gap:0; }
+  .cell { min-height:64px; padding:3px 3px 15px; border-radius:8px; }
+  .cell .top { min-height:18px; gap:2px; }
   .cell .s { font-size:15px; }
-  .cell .l { font-size:10px; }
+  .cell .top .badge { width:17px; height:17px; }
+  .cell .top .badge ha-icon { --mdc-icon-size:11px; }
+  .cell .l { font-size:10px; right:4px; bottom:2px; }
   .cell .ev { font-size:9.5px; gap:2px; line-height:1.2; align-items:flex-start; }
   .cell .ev .dot { width:4px; height:4px; margin-top:4px; }
   .cell .ev .t { white-space:normal; overflow-wrap:anywhere; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
@@ -493,14 +495,10 @@ class LichVietPanel extends HTMLElement {
         if (d.is_today) cls.push("today");
         if (d.date === this._state.selected) cls.push("selected");
         const lunarText = d.lunar_day === 1 ? `${d.lunar_day}/${d.lunar_month}${d.lunar_leap ? "N" : ""}` : `${d.lunar_day}`;
-        const moon =
-          d.lunar_day === 1
-            ? '<ha-icon icon="mdi:moon-new"></ha-icon>'
-            : d.lunar_day === 15
-              ? '<ha-icon icon="mdi:moon-full"></ha-icon>'
-              : "";
         // Mùng 1/rằm đã thể hiện bằng màu ô và icon trăng, không lặp thành dòng chữ.
         const named = d.events.filter((e) => e.category !== "monthly");
+        // Icon tròn góc trên: ngày lễ/sự kiện đầu tiên; ngày chỉ có mùng 1/rằm thì icon trăng.
+        const iconEvent = named[0] || d.events[0];
         const lines = named
           .slice(0, MAX_LINES)
           .map(
@@ -511,8 +509,9 @@ class LichVietPanel extends HTMLElement {
         const more = named.length > MAX_LINES ? `<span class="more">+${named.length - MAX_LINES} sự kiện</span>` : "";
         const title = d.events.map((e) => e.name).join("\n");
         return `<button class="${cls.join(" ")}" data-action="select" data-date="${d.date}" title="${esc(title)}">
-          <span class="top"><span class="s">${d.day}</span><span class="l">${moon}${lunarText}</span></span>
+          <span class="top"><span class="s">${d.day}</span>${iconEvent ? this._badge(iconEvent) : ""}</span>
           ${lines}${more}
+          <span class="l">${lunarText}</span>
         </button>`;
       })
       .join("");
