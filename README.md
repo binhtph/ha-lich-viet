@@ -101,27 +101,52 @@ Mặc định chỉ gửi khi có sự kiện hoặc lời nhắc.
 
 Tên hiển thị là tiếng Việt; entity_id sinh theo tiếng Anh.
 
-### Ví dụ automation: nhắc thắp hương mùng 1, rằm
+### Ví dụ automation: nhắc lịch ăn chay
+
+Automation này nhắc **20:00 tối hôm trước** ("Ngày mai ăn chay") và **06:00 sáng** ngày ăn chay. Ngày ăn chay khai báo trong `ngay_chay` theo ngày âm lịch:
+
+| Lịch ăn chay | `ngay_chay` |
+|---|---|
+| 2 ngày (mùng 1, rằm) | `[1, 15]` |
+| 4 ngày | `[1, 14, 15, 30]` |
+| 10 ngày | `[1, 8, 14, 15, 18, 23, 24, 28, 29, 30]` |
+
+Số `30` nghĩa là ngày cuối tháng âm: tháng thiếu (29 ngày) thì tự tính vào ngày 29.
 
 ```yaml
-alias: Nhắc thắp hương
+alias: Nhắc lịch ăn chay
+description: Nhắc tối hôm trước và sáng ngày ăn chay theo lịch âm
+mode: single
 triggers:
   - trigger: time
+    at: "20:00:00"
+    id: toi_hom_truoc
+  - trigger: time
     at: "06:00:00"
+    id: sang_hom_nay
+variables:
+  ngay_chay: [1, 15]
+  hom_nay: "{{ state_attr('sensor.lich_viet_lunar_date', 'ngay') | int(0) }}"
+  so_ngay: "{{ state_attr('sensor.lich_viet_lunar_date', 'so_ngay_trong_thang') | int(30) }}"
+  la_toi: "{{ trigger.id == 'toi_hom_truoc' }}"
+  ngay_xet: "{{ (1 if hom_nay == so_ngay else hom_nay + 1) if la_toi else hom_nay }}"
+  cuoi_thang: "{{ (hom_nay + 1 == so_ngay) if la_toi else (hom_nay == so_ngay) }}"
+  la_ngay_chay: "{{ hom_nay > 0 and (ngay_xet in ngay_chay or (30 in ngay_chay and cuoi_thang)) }}"
+  ten_ngay: >-
+    {{ 'mùng 1' if ngay_xet == 1 else 'rằm' if ngay_xet == 15
+       else 'ngày cuối tháng' if cuoi_thang else 'ngày ' ~ ngay_xet }}
 conditions:
-  - condition: or
-    conditions:
-      - condition: state
-        entity_id: binary_sensor.lich_viet_first_lunar_day
-        state: "on"
-      - condition: state
-        entity_id: binary_sensor.lich_viet_full_moon_day
-        state: "on"
+  - condition: template
+    value_template: "{{ la_ngay_chay }}"
 actions:
-  - action: notify.mobile_app_brians_iphone
+  - action: notify.notify
     data:
-      message: "Hôm nay {{ states('sensor.lich_viet_lunar_date') }}, nhớ thắp hương."
+      title: "🥗 Lịch ăn chay"
+      message: >-
+        {{ 'Ngày mai' if la_toi else 'Hôm nay' }} là {{ ten_ngay }} âm lịch, nhớ ăn chay.
 ```
+
+Đổi `notify.notify` thành kênh bạn dùng, ví dụ `notify.mobile_app_<tên_điện_thoại>`. Muốn gửi Telegram thì dùng action `telegram_bot.send_message`.
 
 ## Kiểm thử (dành cho người phát triển)
 
