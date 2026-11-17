@@ -1,3 +1,9 @@
+# v1.2.0
+
+## Thêm
+- **Ngày Văn hóa Việt Nam (24/11)**: ngày nghỉ lễ hưởng nguyên lương từ năm 2026 (Nghị quyết 28/2026/QH16). Ô lịch tô đỏ, có trong danh sách sắp tới, bản tin, calendar entity và `binary_sensor.lich_viet_public_holiday`. Các năm trước 2026 không hiện ngày này.
+- README có ảnh chụp màn hình (máy tính, theme tối, điện thoại, hộp thoại thêm sự kiện).
+
 # v1.1.1
 
 ## Bảo mật

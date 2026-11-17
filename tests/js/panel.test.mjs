@@ -94,11 +94,18 @@ test("hiển thị thẻ hôm nay, đếm ngược Tết và lưới tháng", as
   assert.equal(ev.length, 1);
   assert.equal(ev[0].textContent, "Nhà giáo VN");
   assert.ok(ev[0].querySelector(".dot.dot-social"));
+  // Ngày Văn hóa Việt Nam 24/11: ngày nghỉ lễ, số ngày và tên tô đỏ
+  const nov24 = t.$('[data-date="2026-11-24"]');
+  assert.ok(nov24.classList.contains("off"));
+  assert.equal(nov24.querySelector(".top .badge.cat-national ha-icon").getAttribute("icon"), "mdi:drama-masks");
+  assert.equal(nov24.querySelector(".ev.off").textContent, "Văn hóa VN");
+  assert.ok(!nov20.classList.contains("off"));
   assert.ok(t.$('[data-date="2026-11-22"]').classList.contains("sun"));
   assert.ok(t.$('[data-date="2026-10-26"]').classList.contains("out"));
   const upcoming = t.$$(".cols .card")[0].textContent;
   assert.match(upcoming, /Ngày Nhà giáo Việt Nam/);
   assert.match(upcoming, /3 ngày/);
+  assert.match(upcoming, /Ngày Văn hóa Việt Nam/);
   t.cleanup();
 });
 

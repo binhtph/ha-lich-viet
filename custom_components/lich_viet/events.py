@@ -61,6 +61,7 @@ class Holiday:
     category: str
     icon: str
     off: bool = False  # ngày nghỉ lễ chính thức
+    since: int | None = None  # năm bắt đầu có ngày lễ này (theo năm của lịch tương ứng)
 
 
 HOLIDAYS: tuple[Holiday, ...] = (
@@ -78,6 +79,8 @@ HOLIDAYS: tuple[Holiday, ...] = (
     Holiday("quoc_khanh", "Quốc khánh", "solar", 2, 9, CAT_NATIONAL, "mdi:flag-variant", True),
     Holiday("phu_nu_viet_nam", "Ngày Phụ nữ Việt Nam", "solar", 20, 10, CAT_SOCIAL, "mdi:flower-tulip"),
     Holiday("nha_giao", "Ngày Nhà giáo Việt Nam", "solar", 20, 11, CAT_SOCIAL, "mdi:school"),
+    # Nghị quyết 28/2026/QH16: nghỉ hưởng nguyên lương, hiệu lực từ 01/7/2026.
+    Holiday("van_hoa", "Ngày Văn hóa Việt Nam", "solar", 24, 11, CAT_NATIONAL, "mdi:drama-masks", True, since=2026),
     Holiday("quan_doi", "Ngày thành lập Quân đội Nhân dân Việt Nam", "solar", 22, 12, CAT_NATIONAL, "mdi:shield-star"),
     Holiday("dem_giang_sinh", "Đêm Giáng sinh", "solar", 24, 12, CAT_INTERNATIONAL, "mdi:pine-tree"),
     Holiday("giang_sinh", "Lễ Giáng sinh", "solar", 25, 12, CAT_INTERNATIONAL, "mdi:pine-tree"),
@@ -116,6 +119,7 @@ SHORT_NAMES: dict[str, str] = {
     "quoc_khanh": "Quốc khánh",
     "phu_nu_viet_nam": "Phụ nữ VN",
     "nha_giao": "Nhà giáo VN",
+    "van_hoa": "Văn hóa VN",
     "quan_doi": "Quân đội ND",
     "dem_giang_sinh": "Đêm Noel",
     "giang_sinh": "Giáng sinh",
@@ -274,6 +278,8 @@ def events_on(d: date, custom: Iterable[dict[str, Any]] = (), *, monthly: bool =
     result: list[Occurrence] = []
 
     def add(h: Holiday, **extra: Any) -> None:
+        if h.since is not None and (lunar.year if h.calendar == "lunar" else d.year) < h.since:
+            return
         result.append(Occurrence(h.id, h.name, d, h.category, h.icon, h.off, lunar=lunar, **extra))
 
     for h in _SOLAR_INDEX.get((d.day, d.month), ()):

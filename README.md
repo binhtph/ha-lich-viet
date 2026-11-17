@@ -1,6 +1,6 @@
 # Lịch Việt cho Home Assistant (`lich_viet`)
 
-[![HACS](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://hacs.xyz/)
+[![HACS](https://img.shields.io/badge/HACS-Default-41BDF5.svg)](https://hacs.xyz/)
 [![Release](https://img.shields.io/github/v/release/binhtph/ha-lich-viet)](https://github.com/binhtph/ha-lich-viet/releases)
 [![Validate](https://github.com/binhtph/ha-lich-viet/actions/workflows/validate.yml/badge.svg)](https://github.com/binhtph/ha-lich-viet/actions/workflows/validate.yml)
 [![Tests](https://github.com/binhtph/ha-lich-viet/actions/workflows/tests.yml/badge.svg)](https://github.com/binhtph/ha-lich-viet/actions/workflows/tests.yml)
@@ -12,7 +12,8 @@ Integration này thêm lịch âm Việt Nam, ngày lễ và sự kiện gia đ�
 
 - **Đổi ngày âm ↔ dương** theo thuật toán thiên văn của Hồ Ngọc Đức, tính theo múi giờ Việt Nam (UTC+7), đúng cả những năm Việt Nam ăn Tết khác Trung Quốc (1985, 2007, 2030). Có tháng nhuận, can chi của ngày/tháng/năm, con giáp, 24 tiết khí và giờ hoàng đạo.
 - **Ngày lễ dựng sẵn**, mỗi lễ có icon và màu riêng; ngày nghỉ lễ chính thức tô đỏ.
-  - Dương lịch: Tết Dương lịch, 3/2, 14/2, 8/3, 30/4, 1/5, 19/5, 1/6, 28/6, 27/7, Quốc khánh, 20/10, 20/11, 22/12, Giáng sinh.
+  - Dương lịch: Tết Dương lịch, 3/2, 14/2, 8/3, 30/4, 1/5, 19/5, 1/6, 28/6, 27/7, Quốc khánh, 20/10, 20/11, 24/11, 22/12, Giáng sinh.
+  - **Ngày Văn hóa Việt Nam (24/11)** là ngày nghỉ lễ hưởng nguyên lương từ năm 2026 (Nghị quyết 28/2026/QH16). Các năm trước 2026 không hiện ngày này.
   - Âm lịch: Tết Nguyên Đán (mùng 1–3), Rằm tháng Giêng, Hàn thực, Giỗ Tổ, Phật Đản, Đoan Ngọ, Vu Lan, Trung thu, Hạ nguyên, ông Công ông Táo, Giao thừa.
   - Tết Thanh minh (tính theo tiết khí), và mùng 1, rằm hằng tháng (kể cả tháng nhuận).
 - **Sự kiện gia đình**: sinh nhật, giỗ, kỷ niệm, theo dương hoặc âm lịch, có nhắc trước N ngày.
@@ -23,9 +24,19 @@ Integration này thêm lịch âm Việt Nam, ngày lễ và sự kiện gia đ�
 - **Ảnh nền phong cảnh** lấy từ thư mục ảnh của bạn (ưu tiên thư mục theo dịp lễ), kết hợp ảnh Unsplash nếu muốn.
 - **Bản tin buổi sáng** gửi qua Telegram và app điện thoại. Mỗi kênh có công tắc bật/tắt riêng.
 
+## Ảnh chụp màn hình
+
+<img src="https://raw.githubusercontent.com/binhtph/ha-lich-viet/main/docs/images/desktop.png" alt="Trang Lịch Việt trên máy tính: thẻ hôm nay, đếm ngược Tết, lưới tháng 11/2026 có Ngày Nhà giáo, Rằm tháng 10 và Ngày Văn hóa Việt Nam" width="860">
+
+| Theme tối | Điện thoại | Thêm sự kiện gia đình |
+|---|---|---|
+| <img src="https://raw.githubusercontent.com/binhtph/ha-lich-viet/main/docs/images/dark.png" alt="Trang Lịch Việt theme tối" width="420"> | <img src="https://raw.githubusercontent.com/binhtph/ha-lich-viet/main/docs/images/mobile.png" alt="Trang Lịch Việt trên điện thoại" width="200"> | <img src="https://raw.githubusercontent.com/binhtph/ha-lich-viet/main/docs/images/dialog.png" alt="Hộp thoại thêm sự kiện gia đình" width="240"> |
+
+Ô ngày nghỉ lễ tô đỏ (24/11), ô mùng 1 và rằm có màu riêng (9/11, 23/11), mỗi ngày lễ có icon ở góc và tên ngắn trong ô. Ảnh nền trong các ảnh trên là hình minh họa.
+
 ## Cài đặt
 
-**HACS:** bấm nút **Mở trong HACS** ở đầu trang (hoặc HACS → ⋮ → Custom repositories → dán link repo, chọn loại *Integration*) → Download → khởi động lại Home Assistant. Khi repo đã có trong kho mặc định của HACS, chỉ cần tìm tên integration trong HACS.
+**HACS:** mở HACS, tìm **Vietnamese Lunar Calendar** (hoặc bấm nút **Mở trong HACS** ở đầu trang) → Download → khởi động lại Home Assistant.
 
 **Thủ công:** chép `custom_components/lich_viet` vào `/config/custom_components/`, rồi khởi động lại Home Assistant.
 

@@ -43,6 +43,8 @@ def _ids(d, custom=()):
         ("giao_thua", 2025, date(2025, 1, 28)),
         ("quoc_khanh", 2026, date(2026, 9, 2)),
         ("nha_giao", 2026, date(2026, 11, 20)),
+        ("van_hoa", 2026, date(2026, 11, 24)),
+        ("van_hoa", 2030, date(2030, 11, 24)),
     ],
 )
 def test_known_holiday_dates(holiday_id, year, expected):
@@ -55,7 +57,8 @@ def test_every_builtin_holiday_occurs_once_per_year():
         ids = [o.id for o in occ]
         for h in HOLIDAYS:
             # ông Táo/Tết có thể rơi 0 hoặc 1 lần trong năm dương (luôn 1 với các năm này)
-            assert ids.count(h.id) == 1, (year, h.id)
+            expected = 0 if h.since and year < h.since else 1
+            assert ids.count(h.id) == expected, (year, h.id)
         assert ids.count("giao_thua") == 1
         assert ids.count("thanh_minh") == 1
 
@@ -266,3 +269,20 @@ def test_family_type_order():
     from custom_components.lich_viet.events import FAMILY_TYPES
 
     assert list(FAMILY_TYPES) == ["sinh_nhat", "gio", "ky_niem", "khac"]
+
+
+# ------------------------------------------------------------------ Ngày Văn hóa Việt Nam
+def test_ngay_van_hoa_from_2026():
+    """24/11 là Ngày Văn hóa Việt Nam, nghỉ lễ từ 2026 (NQ 28/2026/QH16); trước đó không có."""
+    occ = [e for e in events_on(date(2026, 11, 24)) if e.id == "van_hoa"]
+    assert len(occ) == 1
+    ev = occ[0]
+    assert ev.name == "Ngày Văn hóa Việt Nam" and ev.off and ev.category == "national"
+    assert ev.as_dict()["short"] == "Văn hóa VN"
+    assert day_info(date(2026, 11, 24))["is_off"] is True
+    assert day_info(date(2027, 11, 24))["is_off"] is True
+    for year in (2020, 2024, 2025):
+        assert "van_hoa" not in _ids(date(year, 11, 24)), year
+        assert day_info(date(year, 11, 24))["is_off"] is False
+    # 20/11 (Nhà giáo) không phải ngày nghỉ, 24/11 là ngày nghỉ
+    assert day_info(date(2026, 11, 20))["is_off"] is False
