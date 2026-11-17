@@ -27,11 +27,13 @@
           "mobile_targets": "Mobile apps (notify.mobile_app_*)",
           "report_time": "Report time",
           "only_when_events": "Only send when there is an event or reminder",
-          "holiday_remind_days": "Remind before holidays (days)"
+          "holiday_remind_days": "Remind before holidays (days)",
+          "monthly_remind_days": "Remind before 1st and 15th lunar day (days)"
         },
         "data_description": {
           "telegram_targets": "Toggle each channel with the device switches.",
-          "holiday_remind_days": "0 = off. Family events use their own reminder days."
+          "holiday_remind_days": "0 = off. Family events use their own reminder days.",
+          "monthly_remind_days": "0 = off. Full-moon days that are named holidays follow the holiday setting."
         }
       },
       "background": {

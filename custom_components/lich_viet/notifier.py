@@ -14,14 +14,16 @@ from homeassistant.helpers.event import async_track_time_change
 from .const import (
     CONF_HOLIDAY_REMIND,
     CONF_MOBILE,
+    CONF_MONTHLY_REMIND,
     CONF_ONLY_WHEN_EVENTS,
     CONF_REPORT_TIME,
     CONF_TELEGRAM,
     DEFAULT_HOLIDAY_REMIND,
+    DEFAULT_MONTHLY_REMIND,
     DEFAULT_REPORT_TIME,
     SWITCH_MORNING,
 )
-from .events import CAT_FAMILY, Occurrence, day_info, events_between, events_on
+from .events import CAT_FAMILY, CAT_MONTHLY, Occurrence, day_info, events_between, events_on
 from .lunar import WEEKDAYS
 
 _LOGGER = logging.getLogger(__name__)
@@ -46,8 +48,16 @@ def _years_text(occ: Occurrence | dict[str, Any]) -> str:
     return f" ({years} tuổi)" if "sinh nhật" in name else f" ({years} năm)"
 
 
-def build_morning_message(today: date, custom: list[dict[str, Any]], holiday_remind: int) -> tuple[str, str, bool]:
-    """(tiêu đề, nội dung, có sự kiện hay không) cho bản tin buổi sáng."""
+def build_morning_message(
+    today: date, custom: list[dict[str, Any]], holiday_remind: int, monthly_remind: int = 0
+) -> tuple[str, str, bool]:
+    """(tiêu đề, nội dung, có sự kiện hay không) cho bản tin buổi sáng.
+
+    - Sự kiện gia đình: nhắc trước theo số ngày cài riêng từng sự kiện.
+    - Mùng 1, rằm (không trùng ngày lễ có tên): nhắc trước `monthly_remind` ngày.
+    - Các ngày lễ còn lại: nhắc trước `holiday_remind` ngày.
+    0 = không nhắc.
+    """
     info = day_info(today, custom)
     today_events = events_on(today, custom)
     lines = [f"Âm lịch: {info['lunar_text']} (ngày {info['can_chi_day']})"]
@@ -57,10 +67,12 @@ def build_morning_message(today: date, custom: list[dict[str, Any]], holiday_rem
 
     reminders: list[str] = []
     horizon = today + timedelta(days=_MAX_REMIND)
-    for occ in events_between(today + timedelta(days=1), horizon, custom, monthly=False):
+    for occ in events_between(today + timedelta(days=1), horizon, custom, monthly=True):
         days_left = (occ.date - today).days
         if occ.category == CAT_FAMILY:
             due = occ.remind_days and days_left == occ.remind_days
+        elif occ.category == CAT_MONTHLY:
+            due = bool(monthly_remind) and days_left == monthly_remind
         else:
             due = bool(holiday_remind) and days_left == holiday_remind
         if due:
@@ -105,9 +117,11 @@ class LichVietNotifier:
     async def async_send_morning(self, *, force: bool = True) -> bool:
         """Gửi bản tin. force=False thì bỏ qua ngày không có gì (nếu đã cài vậy)."""
         opts = self.runtime.options
-        remind = int(opts.get(CONF_HOLIDAY_REMIND, DEFAULT_HOLIDAY_REMIND))
         title, message, has_events = build_morning_message(
-            self.runtime.today, self.runtime.custom_events, remind
+            self.runtime.today,
+            self.runtime.custom_events,
+            int(opts.get(CONF_HOLIDAY_REMIND, DEFAULT_HOLIDAY_REMIND)),
+            int(opts.get(CONF_MONTHLY_REMIND, DEFAULT_MONTHLY_REMIND)),
         )
         if not force and opts.get(CONF_ONLY_WHEN_EVENTS, True) and not has_events:
             return False

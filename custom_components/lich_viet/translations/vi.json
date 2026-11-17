@@ -27,11 +27,13 @@
           "mobile_targets": "App điện thoại (notify.mobile_app_*)",
           "report_time": "Giờ gửi bản tin",
           "only_when_events": "Chỉ gửi khi có sự kiện hoặc lời nhắc",
-          "holiday_remind_days": "Nhắc trước ngày lễ (ngày)"
+          "holiday_remind_days": "Nhắc trước ngày lễ (ngày)",
+          "monthly_remind_days": "Nhắc trước mùng 1 và rằm (ngày)"
         },
         "data_description": {
           "telegram_targets": "Bật/tắt từng kênh bằng công tắc trong thiết bị Lịch Việt.",
-          "holiday_remind_days": "0 = không nhắc ngày lễ. Giỗ, sinh nhật nhắc theo số ngày cài riêng từng sự kiện."
+          "holiday_remind_days": "0 = không nhắc ngày lễ. Giỗ, sinh nhật nhắc theo số ngày cài riêng từng sự kiện.",
+          "monthly_remind_days": "0 = không nhắc. Rằm trùng ngày lễ có tên (Rằm tháng Giêng, Phật Đản, Vu Lan, Trung thu, Hạ nguyên) được nhắc theo mục ngày lễ."
         }
       },
       "background": {

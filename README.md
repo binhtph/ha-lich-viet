@@ -62,7 +62,7 @@ Sau đó vào **Settings → Devices & services → Add integration → "Vietnam
 
 | Mục | Nội dung |
 |---|---|
-| Thông báo | Kênh Telegram (notify entity của bot), app điện thoại (`mobile_app_*`), giờ gửi bản tin, chỉ gửi khi có sự kiện, nhắc trước ngày lễ bao nhiêu ngày |
+| Thông báo | Kênh Telegram (notify entity của bot), app điện thoại (`mobile_app_*`), giờ gửi bản tin, chỉ gửi khi có sự kiện, nhắc trước ngày lễ bao nhiêu ngày, nhắc trước mùng 1 và rằm bao nhiêu ngày (mặc định 1) |
 | Ảnh nền | Bật/tắt, cách đổi ảnh, thư mục ảnh, Unsplash key và từ khóa, trộn ảnh, độ đặc của các thẻ |
 
 Bản tin buổi sáng có:
@@ -70,6 +70,7 @@ Bản tin buổi sáng có:
 - Sự kiện hôm nay (kể cả mùng 1, rằm).
 - Lời nhắc giỗ/sinh nhật theo số ngày cài riêng cho từng sự kiện.
 - Lời nhắc ngày lễ trước N ngày.
+- Lời nhắc trước mùng 1 và rằm, ví dụ "Rằm tháng 11: ngày mai (Thứ Tư 23/12)". Rằm trùng ngày lễ có tên (Rằm tháng Giêng, Phật Đản, Vu Lan, Trung thu, Hạ nguyên) được nhắc theo mục ngày lễ, không nhắc trùng hai lần.
 
 Mặc định chỉ gửi khi có sự kiện hoặc lời nhắc.
 

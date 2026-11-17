@@ -70,7 +70,8 @@ def _state(hass, eid):
 
 
 NOTIFY = {"telegram_targets": [TG], "mobile_targets": ["mobile_app_brians_iphone"],
-          "report_time": "06:30:00", "only_when_events": True, "holiday_remind_days": 1}
+          "report_time": "06:30:00", "only_when_events": True, "holiday_remind_days": 1,
+          "monthly_remind_days": 1}
 
 
 # ------------------------------------------------------------------ cài đặt
@@ -386,6 +387,29 @@ async def test_morning_report_and_reminders(hass, tz, freezer, hass_ws_client, h
     assert "Giỗ ông nội (16 năm): còn 3 ngày (Thứ Tư 23/12, 15/11 âm)" in tg[-1].data["message"]
 
 
+async def test_scheduled_report_reminds_first_lunar_day(hass, tz, freezer):
+    tg = async_mock_service(hass, "telegram_bot", "send_message")
+    freezer.move_to("2026-12-08 06:00:00+07:00")
+    entry = await _setup(hass)
+    await _options(hass, entry, "notify", {**NOTIFY, "mobile_targets": []})
+    assert entry.options["monthly_remind_days"] == 1
+    await _tick(hass, freezer, "2026-12-08 06:30:00+07:00")
+    assert len(tg) == 1
+    assert "Mùng 1 tháng 11: ngày mai (Thứ Tư 09/12)" in tg[0].data["message"]
+
+
+async def test_monthly_remind_defaults_for_existing_entry(hass, tz, freezer):
+    """Entry cài từ bản trước (chưa có tùy chọn mới) vẫn nhắc trước 1 ngày."""
+    tg = async_mock_service(hass, "telegram_bot", "send_message")
+    freezer.move_to("2026-12-08 06:00:00+07:00")
+    entry = await _setup(hass)
+    opts = {k: v for k, v in entry.options.items() if k != "monthly_remind_days"}
+    hass.config_entries.async_update_entry(entry, options={**opts, "telegram_targets": [TG]})
+    await hass.async_block_till_done()
+    await _tick(hass, freezer, "2026-12-08 06:30:00+07:00")
+    assert "Mùng 1 tháng 11: ngày mai" in tg[-1].data["message"]
+
+
 async def test_report_switches_and_button(hass, tz, freezer):
     tg = async_mock_service(hass, "telegram_bot", "send_message")
     app = async_mock_service(hass, "notify", "mobile_app_brians_iphone")
@@ -416,7 +440,7 @@ async def test_only_when_events_off_sends_every_day(hass, tz, freezer):
     freezer.move_to("2026-11-17 06:00:00+07:00")
     entry = await _setup(hass)
     await _options(hass, entry, "notify", {**NOTIFY, "mobile_targets": [], "only_when_events": False,
-                                           "holiday_remind_days": 0})
+                                           "holiday_remind_days": 0, "monthly_remind_days": 0})
     await _tick(hass, freezer, "2026-11-17 06:30:00+07:00")
     assert len(tg) == 1 and "Hôm nay" not in tg[0].data["message"]
     assert date(2026, 11, 17).isoformat() == "2026-11-17"

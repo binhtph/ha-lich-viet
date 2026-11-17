@@ -101,6 +101,42 @@ HOLIDAY_BY_ID = {h.id: h for h in HOLIDAYS}
 GIAO_THUA = Holiday("giao_thua", "Giao thừa", "lunar", 0, 12, CAT_LUNAR, "mdi:firework", True)
 THANH_MINH = Holiday("thanh_minh", "Tết Thanh minh", "solar", 0, 4, CAT_LUNAR, "mdi:leaf")
 
+# Tên ngắn hiển thị trong ô lịch (ô nhỏ, cần gọn).
+SHORT_NAMES: dict[str, str] = {
+    "tet_duong_lich": "Tết Dương lịch",
+    "thanh_lap_dang": "Thành lập Đảng",
+    "valentine": "Valentine",
+    "quoc_te_phu_nu": "Quốc tế Phụ nữ",
+    "giai_phong": "Giải phóng MN",
+    "quoc_te_lao_dong": "Quốc tế Lao động",
+    "sinh_nhat_bac": "Sinh nhật Bác",
+    "thieu_nhi": "Thiếu nhi",
+    "gia_dinh": "Gia đình VN",
+    "thuong_binh_liet_si": "Thương binh Liệt sĩ",
+    "quoc_khanh": "Quốc khánh",
+    "phu_nu_viet_nam": "Phụ nữ VN",
+    "nha_giao": "Nhà giáo VN",
+    "quan_doi": "Quân đội ND",
+    "dem_giang_sinh": "Đêm Noel",
+    "giang_sinh": "Giáng sinh",
+    "tet_nguyen_dan": "Mùng 1 Tết",
+    "mung_2_tet": "Mùng 2 Tết",
+    "mung_3_tet": "Mùng 3 Tết",
+    "ram_thang_gieng": "Rằm tháng Giêng",
+    "han_thuc": "Hàn thực",
+    "gio_to": "Giỗ Tổ",
+    "phat_dan": "Phật Đản",
+    "doan_ngo": "Đoan Ngọ",
+    "vu_lan": "Vu Lan",
+    "trung_thu": "Trung thu",
+    "ha_nguyen": "Hạ nguyên",
+    "ong_tao": "Ông Táo",
+    "giao_thua": "Giao thừa",
+    "thanh_minh": "Thanh minh",
+    "mung_1": "Mùng 1",
+    "ram": "Rằm",
+}
+
 # Thư mục ảnh nền theo dịp: (thư mục, id ngày lễ mốc, số ngày trước, số ngày sau).
 BACKGROUND_OCCASIONS: tuple[tuple[str, str, int, int], ...] = (
     ("tet", "tet_nguyen_dan", 7, 7),
@@ -139,6 +175,7 @@ class Occurrence:
     def as_dict(self) -> dict[str, Any]:
         data = asdict(self)
         data["date"] = self.date.isoformat()
+        data["short"] = SHORT_NAMES.get(self.id, self.name) if self.source == "builtin" else self.name
         data.pop("lunar")
         if self.lunar is not None:
             data["lunar"] = f"{self.lunar.day}/{self.lunar.month}" + (" nhuận" if self.lunar.leap else "")

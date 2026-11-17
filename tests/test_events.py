@@ -194,3 +194,14 @@ def test_year_range_performance():
     assert all(o.date.year == 2026 for o in occ)
     assert occ == sorted(occ, key=lambda o: o.date)
     assert date(2026, 1, 1) + timedelta(days=364) == date(2026, 12, 31)
+
+
+def test_short_names_for_calendar_cells():
+    assert [e.as_dict()["short"] for e in events_on(date(2026, 11, 20))] == ["Nhà giáo VN"]
+    assert [e.as_dict()["short"] for e in events_on(date(2026, 11, 9))] == ["Mùng 1"]
+    ev = dict(GIO_ONG, id="s", name="Giỗ cụ cố")
+    custom = [e.as_dict()["short"] for e in events_on(date(2026, 12, 23), [ev]) if e.source == "custom"]
+    assert custom == ["Giỗ cụ cố"]
+    for h in HOLIDAYS:
+        occ = [e for e in events_between(date(2026, 1, 1), date(2027, 2, 28), monthly=False) if e.id == h.id]
+        assert occ and len(occ[0].as_dict()["short"]) <= 20, h.id

@@ -29,6 +29,7 @@ from .const import (
     CONF_BG_MODE,
     CONF_HOLIDAY_REMIND,
     CONF_MOBILE,
+    CONF_MONTHLY_REMIND,
     CONF_ONLY_WHEN_EVENTS,
     CONF_PANEL_OPACITY,
     CONF_REPORT_TIME,
@@ -38,6 +39,7 @@ from .const import (
     CONF_UNSPLASH_QUERY,
     DEFAULT_BG_MODE,
     DEFAULT_HOLIDAY_REMIND,
+    DEFAULT_MONTHLY_REMIND,
     DEFAULT_PANEL_OPACITY,
     DEFAULT_REPORT_TIME,
     DEFAULT_UNSPLASH_QUERY,
@@ -51,6 +53,7 @@ DEFAULT_OPTIONS: dict[str, Any] = {
     CONF_REPORT_TIME: DEFAULT_REPORT_TIME,
     CONF_ONLY_WHEN_EVENTS: True,
     CONF_HOLIDAY_REMIND: DEFAULT_HOLIDAY_REMIND,
+    CONF_MONTHLY_REMIND: DEFAULT_MONTHLY_REMIND,
     CONF_BG_ENABLED: True,
     CONF_BG_MODE: DEFAULT_BG_MODE,
     CONF_BG_FOLDER: "",
@@ -77,6 +80,8 @@ def _notify_schema(hass: HomeAssistant, v: dict[str, Any]) -> vol.Schema:
         vol.Required(CONF_ONLY_WHEN_EVENTS, default=v.get(CONF_ONLY_WHEN_EVENTS, True)): BooleanSelector(),
         vol.Required(CONF_HOLIDAY_REMIND, default=v.get(CONF_HOLIDAY_REMIND, DEFAULT_HOLIDAY_REMIND)): _box(
             min=0, max=30, step=1, unit_of_measurement="ngày"),
+        vol.Required(CONF_MONTHLY_REMIND, default=v.get(CONF_MONTHLY_REMIND, DEFAULT_MONTHLY_REMIND)): _box(
+            min=0, max=7, step=1, unit_of_measurement="ngày"),
     })
 
 
@@ -139,6 +144,7 @@ class LichVietOptionsFlow(OptionsFlow):
                 CONF_REPORT_TIME: user_input[CONF_REPORT_TIME],
                 CONF_ONLY_WHEN_EVENTS: bool(user_input[CONF_ONLY_WHEN_EVENTS]),
                 CONF_HOLIDAY_REMIND: int(user_input[CONF_HOLIDAY_REMIND]),
+                CONF_MONTHLY_REMIND: int(user_input[CONF_MONTHLY_REMIND]),
             })
             return await self.async_step_init()
         return self.async_show_form(step_id="notify", data_schema=_notify_schema(self.hass, self.opts))

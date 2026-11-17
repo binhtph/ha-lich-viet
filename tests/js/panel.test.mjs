@@ -87,15 +87,61 @@ test("hiển thị thẻ hôm nay, đếm ngược Tết và lưới tháng", as
   assert.equal(today[0].querySelector(".l").textContent, "9");
   const nov9 = t.$('[data-date="2026-11-09"]');
   assert.equal(nov9.querySelector(".l").textContent, "1/10");
-  assert.equal(nov9.querySelector(".badge ha-icon").getAttribute("icon"), "mdi:moon-new");
+  assert.equal(nov9.querySelector(".l ha-icon").getAttribute("icon"), "mdi:moon-new");
   const nov20 = t.$('[data-date="2026-11-20"]');
-  assert.ok(nov20.querySelector(".badge.cat-social"));
-  assert.equal(nov20.querySelector("ha-icon").getAttribute("icon"), "mdi:school");
+  const ev = nov20.querySelectorAll(".ev");
+  assert.equal(ev.length, 1);
+  assert.equal(ev[0].textContent, "Nhà giáo VN");
+  assert.ok(ev[0].querySelector(".dot.dot-social"));
   assert.ok(t.$('[data-date="2026-11-22"]').classList.contains("sun"));
   assert.ok(t.$('[data-date="2026-10-26"]').classList.contains("out"));
   const upcoming = t.$$(".cols .card")[0].textContent;
   assert.match(upcoming, /Ngày Nhà giáo Việt Nam/);
   assert.match(upcoming, /3 ngày/);
+  t.cleanup();
+});
+
+test("ô mùng 1, rằm có màu riêng; mùng 1/rằm không lặp thành dòng chữ", async () => {
+  const t = setup();
+  await settle();
+  const nov9 = t.$('[data-date="2026-11-09"]');
+  assert.ok(nov9.classList.contains("moon-1"));
+  assert.equal(nov9.querySelectorAll(".ev").length, 0, "mùng 1 chỉ tô màu, không thêm chữ");
+  const nov23 = t.$('[data-date="2026-11-23"]');
+  assert.ok(nov23.classList.contains("moon-15"));
+  assert.equal(nov23.querySelector(".l ha-icon").getAttribute("icon"), "mdi:moon-full");
+  assert.equal(nov23.querySelector(".ev .t").textContent, "Hạ nguyên", "rằm có tên lễ vẫn hiện chữ");
+  const plain = t.$('[data-date="2026-11-18"]');
+  assert.ok(!plain.classList.contains("moon-1") && !plain.classList.contains("moon-15"));
+  assert.equal(plain.querySelectorAll(".ev").length, 0);
+  // tháng 12: rằm tháng 11 trùng giỗ ông nội -> ô tô màu rằm + một dòng "Giỗ ông nội"
+  await t.click(t.$('[data-action="next"]'));
+  const dec23 = t.$('[data-date="2026-12-23"]');
+  assert.ok(dec23.classList.contains("moon-15"));
+  assert.deepEqual([...dec23.querySelectorAll(".ev .t")].map((n) => n.textContent), ["Giỗ ông nội"]);
+  assert.ok(dec23.querySelector(".dot-family"));
+  // ngày nghỉ lễ: chữ đỏ
+  t.cleanup();
+});
+
+test("nhiều sự kiện cùng ngày: mỗi sự kiện một dòng, quá 3 thì gộp '+N'", async () => {
+  const t = setup();
+  await settle();
+  const month = JSON.parse(JSON.stringify(FX.month_11));
+  const cell = month.days.find((d) => d.date === "2026-11-20");
+  const mk = (id, short, category, off = false) => ({ id, name: short, short, category, icon: "mdi:star", off, date: cell.date });
+  cell.events = [mk("a", "Nhà giáo VN", "social"), mk("b", "Sinh nhật <b>Bin</b>", "family"),
+    mk("c", "Quốc khánh", "national", true), mk("d", "Thêm 1", "family"), mk("e", "Thêm 2", "family"),
+    mk("ram", "Rằm", "monthly")];
+  t.el._state.days = month.days;
+  t.el._render();
+  const c = t.$('[data-date="2026-11-20"]');
+  const lines = [...c.querySelectorAll(".ev .t")].map((n) => n.textContent);
+  assert.deepEqual(lines, ["Nhà giáo VN", "Sinh nhật <b>Bin</b>", "Quốc khánh"]);
+  assert.equal(c.querySelectorAll("b").length, 0, "tên được hiển thị an toàn");
+  assert.equal(c.querySelector(".more").textContent, "+2 sự kiện");
+  assert.ok(c.querySelectorAll(".ev")[2].classList.contains("off"));
+  assert.match(c.getAttribute("title"), /Nhà giáo VN\nSinh nhật/);
   t.cleanup();
 });
 

@@ -69,21 +69,32 @@ ha-icon { --mdc-icon-size:20px; }
 .grid { display:grid; grid-template-columns:repeat(7, minmax(0,1fr)); gap:5px; }
 .dow { text-align:center; font-size:12px; color:var(--secondary-text-color); padding:4px 0; }
 .dow.sun { color:var(--error-color, #db4437); }
-.cell { position:relative; min-height:64px; border-radius:10px; padding:6px 7px; cursor:pointer; border:1px solid transparent;
-  background:color-mix(in srgb, var(--card-background-color, #fff) 55%, transparent); text-align:left; display:block; width:100%; }
+.cell { position:relative; min-height:86px; border-radius:10px; padding:5px 6px 5px; cursor:pointer; border:1px solid transparent;
+  background:color-mix(in srgb, var(--card-background-color, #fff) 55%, transparent); text-align:left; width:100%;
+  display:flex; flex-direction:column; align-items:stretch; justify-content:flex-start; gap:2px; overflow:hidden; }
 .cell:hover { border-color:var(--primary-color); }
-.cell .s { font-size:17px; font-weight:500; }
-.cell .l { position:absolute; right:7px; bottom:5px; font-size:12px; color:var(--secondary-text-color); }
-.cell .l.first { color:#b06e0a; font-weight:500; }
+.cell .top { display:flex; align-items:baseline; justify-content:space-between; gap:4px; }
+.cell .s { font-size:17px; font-weight:500; line-height:1.2; }
+.cell .l { font-size:12px; color:var(--secondary-text-color); display:inline-flex; align-items:center; gap:2px; white-space:nowrap; }
+.cell .l ha-icon { --mdc-icon-size:12px; }
 .cell.out { opacity:.42; }
 .cell.sun .s, .cell.off .s { color:var(--error-color, #db4437); }
+.cell.moon-1 { background:rgba(239,159,39,.12); }
+.cell.moon-15 { background:rgba(239,159,39,.26); }
+.cell.moon-1 .l, .cell.moon-15 .l { color:#b06e0a; font-weight:500; }
 .cell.today { border:2px solid var(--primary-color); }
-.cell.selected { background:color-mix(in srgb, var(--primary-color) 16%, transparent); }
-.cell .ic { position:absolute; right:5px; top:5px; }
-.cell .more { position:absolute; left:7px; bottom:5px; font-size:11px; color:var(--secondary-text-color); }
+.cell.selected { box-shadow:inset 0 0 0 2px color-mix(in srgb, var(--primary-color) 45%, transparent); background:color-mix(in srgb, var(--primary-color) 14%, transparent); }
+.cell .ev { display:flex; align-items:center; gap:4px; font-size:11px; line-height:1.3; min-width:0; }
+.cell .ev .t { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; }
+.cell .ev.off .t { color:var(--error-color, #db4437); font-weight:500; }
+.cell .ev .dot { width:6px; height:6px; border-radius:50%; flex:none; }
+.cell .more { font-size:10.5px; color:var(--secondary-text-color); line-height:1.2; }
+.dot-national { background:#e24b4a; } .dot-lunar, .dot-monthly { background:#ef9f27; } .dot-social { background:#7f77dd; }
+.dot-international { background:#639922; } .dot-family { background:#1d9e75; }
+.swatch { width:24px; height:24px; border-radius:6px; flex:none; display:inline-flex; align-items:center; justify-content:center; color:#b06e0a; }
+.swatch ha-icon { --mdc-icon-size:14px; }
 .badge { width:24px; height:24px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; flex:none; }
 .badge ha-icon { --mdc-icon-size:15px; }
-.cell .badge { width:22px; height:22px; }
 .cat-national { background:rgba(226,75,74,.18); color:#d43c3b; }
 .cat-lunar, .cat-monthly { background:rgba(239,159,39,.22); color:#b06e0a; }
 .cat-social { background:rgba(127,119,221,.2); color:#6158c9; }
@@ -119,12 +130,15 @@ ha-icon { --mdc-icon-size:20px; }
 @media (max-width: 700px) {
   .page { padding:8px 8px 20px; }
   .cols { grid-template-columns:1fr; }
-  .cell { min-height:52px; padding:4px 5px; }
+  .grid { gap:3px; }
+  .cell { min-height:64px; padding:3px 3px 4px; border-radius:8px; }
+  .cell .top { flex-direction:column; align-items:flex-start; gap:0; }
   .cell .s { font-size:15px; }
-  .cell .l { font-size:11px; right:5px; bottom:3px; }
-  .cell .badge { width:9px; height:9px; right:4px; top:4px; }
-  .cell .badge ha-icon { display:none; }
-  .cell .more { display:none; }
+  .cell .l { font-size:10px; }
+  .cell .ev { font-size:9.5px; gap:2px; line-height:1.2; align-items:flex-start; }
+  .cell .ev .dot { width:4px; height:4px; margin-top:4px; }
+  .cell .ev .t { white-space:normal; overflow-wrap:anywhere; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+  .cell .more { font-size:9.5px; }
   .hero .big .num { font-size:44px; }
   .toolbar .title { font-size:18px; }
   .toolbar .label { display:none; }
@@ -468,23 +482,37 @@ class LichVietPanel extends HTMLElement {
   }
 
   _renderGrid() {
+    const MAX_LINES = 3;
     const cells = this._state.days
       .map((d) => {
         const cls = ["cell"];
         if (!d.in_month) cls.push("out");
         if (d.weekday === 6) cls.push("sun");
         if (d.is_off) cls.push("off");
+        if (d.lunar_day === 1 || d.lunar_day === 15) cls.push(`moon-${d.lunar_day}`);
         if (d.is_today) cls.push("today");
         if (d.date === this._state.selected) cls.push("selected");
-        const first = d.events[0];
-        const lunar = d.lunar_day === 1 ? `${d.lunar_day}/${d.lunar_month}${d.lunar_leap ? "N" : ""}` : d.lunar_day;
-        const lunarCls = d.lunar_day === 1 || d.lunar_day === 15 ? "l first" : "l";
-        const title = d.events.map((e) => e.name).join(", ");
+        const lunarText = d.lunar_day === 1 ? `${d.lunar_day}/${d.lunar_month}${d.lunar_leap ? "N" : ""}` : `${d.lunar_day}`;
+        const moon =
+          d.lunar_day === 1
+            ? '<ha-icon icon="mdi:moon-new"></ha-icon>'
+            : d.lunar_day === 15
+              ? '<ha-icon icon="mdi:moon-full"></ha-icon>'
+              : "";
+        // Mùng 1/rằm đã thể hiện bằng màu ô và icon trăng, không lặp thành dòng chữ.
+        const named = d.events.filter((e) => e.category !== "monthly");
+        const lines = named
+          .slice(0, MAX_LINES)
+          .map(
+            (e) => `<span class="ev${e.off ? " off" : ""}" data-cat="${esc(e.category)}">` +
+              `<span class="dot dot-${esc(e.category)}"></span><span class="t">${esc(e.short || e.name)}</span></span>`
+          )
+          .join("");
+        const more = named.length > MAX_LINES ? `<span class="more">+${named.length - MAX_LINES} sự kiện</span>` : "";
+        const title = d.events.map((e) => e.name).join("\n");
         return `<button class="${cls.join(" ")}" data-action="select" data-date="${d.date}" title="${esc(title)}">
-          <span class="s">${d.day}</span>
-          ${first ? this._badge(first, "ic") : ""}
-          ${d.events.length > 1 ? `<span class="more">+${d.events.length - 1}</span>` : ""}
-          <span class="${lunarCls}">${lunar}</span>
+          <span class="top"><span class="s">${d.day}</span><span class="l">${moon}${lunarText}</span></span>
+          ${lines}${more}
         </button>`;
       })
       .join("");
@@ -528,7 +556,7 @@ class LichVietPanel extends HTMLElement {
   _renderLegend() {
     const items = [
       ["national", "mdi:flag"],
-      ["lunar", "mdi:moon-full"],
+      ["lunar", "mdi:firework"],
       ["social", "mdi:school"],
       ["international", "mdi:pine-tree"],
       ["family", "mdi:candle"],
@@ -539,6 +567,8 @@ class LichVietPanel extends HTMLElement {
       )
       .join("");
     return `<div class="glass card"><h2>Chú thích</h2><div class="legend">${items}
+      <span><span class="swatch" style="background:rgba(239,159,39,.12)"><ha-icon icon="mdi:moon-new"></ha-icon></span>Ngày mùng 1</span>
+      <span><span class="swatch" style="background:rgba(239,159,39,.26)"><ha-icon icon="mdi:moon-full"></ha-icon></span>Ngày rằm</span>
       <span><span class="badge" style="color:var(--error-color,#db4437);font-weight:500">17</span>Chủ nhật, ngày nghỉ lễ</span></div></div>`;
   }
 
