@@ -432,7 +432,7 @@ async def test_morning_report_and_reminders(hass, tz, freezer, hass_ws_client, h
 
     # 20/12: nhắc trước 3 ngày giỗ ông nội (15/11 âm = 23/12), năm thứ 16
     await _tick(hass, freezer, "2026-12-20 06:30:00+07:00")
-    assert "Còn 3 ngày (T4 23/12): Giỗ ông nội (16 năm)" in tg[-1].data["message"]
+    assert "Còn 3 ngày (T4 23/12 · 15/11 ÂL): Giỗ ông nội (16 năm)" in tg[-1].data["message"]
     assert app[-1].data["message"] == tg[-1].data["message"]
 
 

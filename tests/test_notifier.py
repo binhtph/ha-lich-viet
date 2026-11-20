@@ -60,7 +60,7 @@ def test_today_first_day_and_family_reminder():
            "year": None, "remind_days": 3, "icon": "mdi:candle", "note": ""}
     _, msg, has = _msg(date(2026, 12, 9), custom=[gio])
     assert msg.startswith("Hôm nay: Mùng 1 tháng 11\n")
-    assert "Còn 3 ngày (T7 12/12): Giỗ bà" in msg
+    assert "Còn 3 ngày (T7 12/12 · 4/11 ÂL): Giỗ bà" in msg
     assert has is True
 
 
@@ -104,7 +104,7 @@ def test_same_day_reminders_on_one_line():
          "year": None, "remind_days": 3, "icon": "mdi:candle", "note": ""}
     b = dict(a, id="b", name="Sinh nhật Bin", type="sinh_nhat", calendar="solar", day=12, month=12)
     _, msg, _ = _msg(date(2026, 12, 9), custom=[a, b])
-    assert "Còn 3 ngày (T7 12/12): Giỗ bà, Sinh nhật Bin" in msg
+    assert "Còn 3 ngày (T7 12/12 · 4/11 ÂL): Giỗ bà, Sinh nhật Bin" in msg
 
 
 def test_no_events_only_can_chi():
@@ -118,3 +118,24 @@ def test_title_fits_one_line():
     for d in (date(2025, 8, 7), date(2026, 11, 22), date(2026, 12, 31), date(2027, 2, 6)):
         title, _, _ = _msg(d)
         assert len(title) <= 38, title
+
+
+def test_lunar_family_reminder_keeps_lunar_date():
+    """Giỗ (âm lịch) ghi kèm ngày âm; sinh nhật dương lịch không ghi."""
+    gio = {"id": "g", "name": "Giỗ ông nội", "type": "gio", "calendar": "lunar", "day": 15, "month": 11,
+           "year": 2010, "remind_days": 1, "icon": "mdi:candle", "note": ""}
+    _, msg, _ = _msg(date(2026, 12, 22), custom=[gio])
+    assert "Ngày mai (15/11 ÂL): Rằm tháng 11, Giỗ ông nội (16 năm)" in msg
+    _, msg, _ = _msg(date(2026, 12, 20), custom=[dict(gio, remind_days=3)], holiday=0, monthly=0)
+    assert msg.splitlines()[0] == "Còn 3 ngày (T4 23/12 · 15/11 ÂL): Giỗ ông nội (16 năm)"
+    # đúng ngày giỗ: ngày âm đã có ở tiêu đề
+    title, msg, _ = _msg(date(2026, 12, 23), custom=[gio])
+    assert title.endswith("15/11 ÂL") and msg.startswith("Hôm nay: Rằm tháng 11, Giỗ ông nội (16 năm)\n")
+    # sinh nhật theo dương lịch không kèm ngày âm
+    bin_ = {"id": "s", "name": "Sinh nhật Bin", "type": "sinh_nhat", "calendar": "solar", "day": 23,
+            "month": 12, "year": None, "remind_days": 1, "icon": "mdi:cake-variant", "note": ""}
+    _, msg, _ = _msg(date(2026, 12, 22), custom=[bin_], holiday=0, monthly=0)
+    assert "Ngày mai: Sinh nhật Bin\n" in msg and "ÂL)" not in msg
+    # rằm (ngày lễ hằng tháng) không kèm ngày âm khi không có giỗ cùng ngày
+    _, msg, _ = _msg(date(2026, 12, 22))
+    assert "Ngày mai: Rằm tháng 11" in msg

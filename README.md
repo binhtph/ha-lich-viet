@@ -96,7 +96,7 @@ Ngày Tân Sửu · năm Bính Ngọ
 
 - Tiêu đề: thứ, ngày dương và ngày âm lịch.
 - Sự kiện hôm nay (kể cả mùng 1, rằm) trên một dòng.
-- Lời nhắc giỗ/sinh nhật theo số ngày cài riêng cho từng sự kiện, ngày lễ trước N ngày, mùng 1 và rằm trước N ngày. Mỗi ngày một dòng, ví dụ "Còn 3 ngày (T4 23/12): Giỗ ông nội (16 năm)". Rằm trùng ngày lễ có tên (Rằm tháng Giêng, Phật Đản, Vu Lan, Trung thu, Hạ nguyên) được nhắc theo mục ngày lễ, không nhắc trùng hai lần.
+- Lời nhắc giỗ/sinh nhật theo số ngày cài riêng cho từng sự kiện, ngày lễ trước N ngày, mùng 1 và rằm trước N ngày. Mỗi ngày một dòng, ví dụ "Còn 3 ngày (T4 23/12 · 15/11 ÂL): Giỗ ông nội (16 năm)". Giỗ và sự kiện gia đình cài theo âm lịch ghi kèm ngày âm. Rằm trùng ngày lễ có tên (Rằm tháng Giêng, Phật Đản, Vu Lan, Trung thu, Hạ nguyên) được nhắc theo mục ngày lễ, không nhắc trùng hai lần.
 - Dòng cuối: can chi của ngày và năm.
 
 Mặc định chỉ gửi khi có sự kiện hoặc lời nhắc.

@@ -76,6 +76,7 @@ def build_morning_message(
 
     Viết gọn để màn hình khóa thấy đủ (Telegram và app gửi y hệt nhau):
     tiêu đề có ngày âm, mỗi mốc một dòng (hôm nay, ngày mai, còn N ngày), can chi để cuối.
+    Lời nhắc giỗ / sự kiện gia đình theo âm lịch ghi kèm ngày âm.
 
     - Sự kiện gia đình: nhắc trước theo số ngày cài riêng từng sự kiện.
     - Mùng 1, rằm (không trùng ngày lễ có tên): nhắc trước `monthly_remind` ngày.
@@ -92,6 +93,7 @@ def build_morning_message(
         lines.append(f"Hôm nay: {_names(today_events)}")
 
     due: dict[date, list[Occurrence]] = {}
+    lunar_ids = {ev.get("id") for ev in custom if ev.get("calendar") == "lunar"}
     horizon = today + timedelta(days=_MAX_REMIND)
     for occ in events_between(today + timedelta(days=1), horizon, custom, monthly=True):
         days_left = (occ.date - today).days
@@ -105,7 +107,15 @@ def build_morning_message(
             due.setdefault(occ.date, []).append(occ)
     for day in sorted(due):
         days_left = (day - today).days
-        when = "Ngày mai" if days_left == 1 else f"Còn {days_left} ngày ({_wd(day)} {day:%d/%m})"
+        # giỗ / sự kiện gia đình theo âm lịch: ghi kèm ngày âm (vd. 15/11 ÂL)
+        lunar_tag = next(
+            (o.as_dict()["lunar"] for o in due[day] if o.event_id in lunar_ids and o.lunar), None
+        )
+        if days_left == 1:
+            when = f"Ngày mai ({lunar_tag} ÂL)" if lunar_tag else "Ngày mai"
+        else:
+            tag = f" · {lunar_tag} ÂL" if lunar_tag else ""
+            when = f"Còn {days_left} ngày ({_wd(day)} {day:%d/%m}{tag})"
         lines.append(f"{when}: {_names(due[day])}")
 
     lines.append(f"Ngày {info['can_chi_day']} · năm {info['can_chi_year']}")

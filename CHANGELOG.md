@@ -1,3 +1,8 @@
+# v1.2.3
+
+## Thay đổi
+- Lời nhắc giỗ và sự kiện gia đình cài theo âm lịch trong bản tin ghi kèm ngày âm (sự kiện cài theo dương lịch thì không), vd. "Còn 3 ngày (T4 23/12 · 15/11 ÂL): Giỗ ông nội (16 năm)", "Ngày mai (15/11 ÂL): Giỗ ông nội (16 năm)".
+
 # v1.2.2
 
 ## Thay đổi
