@@ -1,3 +1,8 @@
+# v1.2.1
+
+## Thay đổi
+- Bản tin gửi qua app điện thoại (`notify.mobile_app_*`): nhấn vào thông báo thì mở thẳng trang **Lịch Việt** (`/lich-viet`). iOS dùng `url`, Android dùng `clickAction`. Tin Telegram không đổi.
+
 # v1.2.0
 
 ## Thêm

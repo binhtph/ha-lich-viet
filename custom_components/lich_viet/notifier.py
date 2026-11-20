@@ -21,6 +21,7 @@ from .const import (
     DEFAULT_HOLIDAY_REMIND,
     DEFAULT_MONTHLY_REMIND,
     DEFAULT_REPORT_TIME,
+    NOTIFY_OPEN_PATH,
     SWITCH_MORNING,
 )
 from .events import CAT_FAMILY, CAT_MONTHLY, Occurrence, day_info, events_between, events_on
@@ -38,6 +39,14 @@ def channels(options: dict[str, Any]) -> list[tuple[str, str]]:
     return [("telegram", t) for t in options.get(CONF_TELEGRAM, [])] + [
         ("mobile", m) for m in options.get(CONF_MOBILE, [])
     ]
+
+
+def mobile_data() -> dict[str, str]:
+    """Dữ liệu kèm tin app điện thoại: nhấn vào tin thì mở trang Lịch Việt.
+
+    iOS đọc `url`, Android đọc `clickAction`; mỗi bên bỏ qua khóa của bên kia.
+    """
+    return {"url": NOTIFY_OPEN_PATH, "clickAction": NOTIFY_OPEN_PATH}
 
 
 def years_label(years: int | None, event_type: str | None) -> str:
@@ -147,7 +156,8 @@ class LichVietNotifier:
                 else:
                     await self.hass.services.async_call(
                         "notify", target.removeprefix("notify."),
-                        {"title": title, "message": message}, blocking=True,
+                        {"title": title, "message": message, "data": mobile_data()},
+                        blocking=True,
                     )
             except Exception as err:  # noqa: BLE001 - một kênh lỗi không chặn kênh khác
                 _LOGGER.warning("Gửi thông báo tới %s lỗi: %s", target, err)

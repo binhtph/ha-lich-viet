@@ -4,7 +4,8 @@ from __future__ import annotations
 
 from datetime import date
 
-from custom_components.lich_viet.notifier import build_morning_message
+from custom_components.lich_viet.const import PANEL_URL
+from custom_components.lich_viet.notifier import build_morning_message, mobile_data
 
 
 def _msg(day, holiday=1, monthly=1, custom=()):
@@ -71,3 +72,9 @@ def test_years_label_by_event_type():
     assert "• Ngày cưới: ngày mai" in msg  # năm đầu tiên: không ghi số
     _, msg, _ = _msg(date(2028, 1, 9), custom=[cuoi], holiday=0, monthly=0)
     assert "• Ngày cưới (1 năm): ngày mai" in msg
+
+
+def test_mobile_data_opens_panel():
+    """Link trong tin app trùng đường dẫn trang sidebar."""
+    assert mobile_data() == {"url": f"/{PANEL_URL}", "clickAction": f"/{PANEL_URL}"}
+    assert mobile_data()["url"] == "/lich-viet"

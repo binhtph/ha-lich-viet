@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 DOMAIN = "lich_viet"
-VERSION = "1.2.0"
+VERSION = "1.2.1"
 NAME = "Lịch Việt"
 
 PANEL_URL = "lich-viet"
+# Nhấn vào tin trên app điện thoại thì mở trang Lịch Việt (iOS: url, Android: clickAction)
+NOTIFY_OPEN_PATH = f"/{PANEL_URL}"
 PANEL_ELEMENT = "lich-viet-panel"
 PANEL_ICON = "mdi:calendar-star"
 STATIC_URL = "/lich_viet_static"

@@ -419,6 +419,9 @@ async def test_morning_report_and_reminders(hass, tz, freezer, hass_ws_client, h
     assert "Ngày Nhà giáo Việt Nam: ngày mai (Thứ Sáu 20/11)" in tg[0].data["message"]
     assert tg[0].data["title"].startswith("<b>📅 LỊCH VIỆT › THỨ NĂM 19/11/2026")
     assert app[0].data["message"].startswith("Âm lịch: 11 tháng 10 năm Bính Ngọ")
+    # nhấn vào tin trên app thì mở trang Lịch Việt (iOS: url, Android: clickAction)
+    assert app[0].data["data"] == {"url": "/lich-viet", "clickAction": "/lich-viet"}
+    assert "data" not in tg[0].data
 
     # 23/11 rằm: có sự kiện hôm nay
     await _tick(hass, freezer, "2026-11-23 06:30:00+07:00")

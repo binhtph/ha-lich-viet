@@ -22,7 +22,7 @@ Integration này thêm lịch âm Việt Nam, ngày lễ và sự kiện gia đ�
   - Lùi lịch về **trước năm đã nhập** thì không thấy sự kiện. Ngày cưới nhập năm sau thì chỉ hiện từ năm đó trở đi. Sự kiện âm lịch so theo năm âm.
   - Giỗ ngày 30 âm mà năm đó tháng thiếu thì tính vào ngày 29. Sinh nhật 29/2 thì năm không nhuận tính vào 28/2.
 - **Ảnh nền phong cảnh** lấy từ thư mục ảnh của bạn (ưu tiên thư mục theo dịp lễ), kết hợp ảnh Unsplash nếu muốn.
-- **Bản tin buổi sáng** gửi qua Telegram và app điện thoại. Mỗi kênh có công tắc bật/tắt riêng.
+- **Bản tin buổi sáng** gửi qua Telegram và app điện thoại. Mỗi kênh có công tắc bật/tắt riêng. Nhấn vào thông báo trên app là mở thẳng trang Lịch Việt.
 
 ## Ảnh chụp màn hình
 
@@ -158,7 +158,13 @@ actions:
         {{ 'Ngày mai' if la_toi else 'Hôm nay' }} là {{ ten_ngay }} âm lịch, nhớ ăn chay.
 ```
 
-Đổi `notify.notify` thành kênh bạn dùng, ví dụ `notify.mobile_app_<tên_điện_thoại>`. Muốn gửi Telegram thì dùng action `telegram_bot.send_message`.
+Đổi `notify.notify` thành kênh bạn dùng, ví dụ `notify.mobile_app_<tên_điện_thoại>`. Muốn gửi Telegram thì dùng action `telegram_bot.send_message`. Muốn nhấn vào tin trên app là mở trang Lịch Việt thì thêm vào `data`:
+
+```yaml
+      data:
+        url: /lich-viet          # iOS
+        clickAction: /lich-viet  # Android
+```
 
 ## Kiểm thử (dành cho người phát triển)
 
