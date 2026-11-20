@@ -1,3 +1,12 @@
+# v1.2.2
+
+## Thay đổi
+- Bản tin buổi sáng viết gọn để đọc đủ trên màn hình khóa:
+  - Tiêu đề có thứ viết tắt, ngày dương và ngày âm, vd. `📅 LỊCH VIỆT › T6 20/11 · 12/10 ÂL`.
+  - Mỗi mốc một dòng: "Hôm nay: …", "Ngày mai: …", "Còn N ngày (T4 23/12): …". Nhiều sự kiện cùng ngày gộp một dòng.
+  - Can chi ngày và năm chuyển xuống dòng cuối.
+- Telegram và app điện thoại nhận cùng một tiêu đề và nội dung (Telegram chỉ in đậm tiêu đề).
+
 # v1.2.1
 
 ## Thay đổi

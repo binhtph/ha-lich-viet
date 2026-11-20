@@ -25,10 +25,10 @@ from .const import (
     SWITCH_MORNING,
 )
 from .events import CAT_FAMILY, CAT_MONTHLY, Occurrence, day_info, events_between, events_on
-from .lunar import WEEKDAYS
 
 _LOGGER = logging.getLogger(__name__)
 _MAX_REMIND = 60
+WEEKDAYS_SHORT = ("T2", "T3", "T4", "T5", "T6", "T7", "CN")
 
 
 def channel_key(kind: str, target: str) -> str:
@@ -61,10 +61,21 @@ def _years_text(occ: Occurrence) -> str:
     return f" ({label})" if label else ""
 
 
+def _wd(d: date) -> str:
+    return WEEKDAYS_SHORT[d.weekday()]
+
+
+def _names(occs: list[Occurrence]) -> str:
+    return ", ".join(f"{o.name}{_years_text(o)}" for o in occs)
+
+
 def build_morning_message(
     today: date, custom: list[dict[str, Any]], holiday_remind: int, monthly_remind: int = 0
 ) -> tuple[str, str, bool]:
     """(tiêu đề, nội dung, có sự kiện hay không) cho bản tin buổi sáng.
+
+    Viết gọn để màn hình khóa thấy đủ (Telegram và app gửi y hệt nhau):
+    tiêu đề có ngày âm, mỗi mốc một dòng (hôm nay, ngày mai, còn N ngày), can chi để cuối.
 
     - Sự kiện gia đình: nhắc trước theo số ngày cài riêng từng sự kiện.
     - Mùng 1, rằm (không trùng ngày lễ có tên): nhắc trước `monthly_remind` ngày.
@@ -73,33 +84,32 @@ def build_morning_message(
     """
     info = day_info(today, custom)
     today_events = events_on(today, custom)
-    lines = [f"Âm lịch: {info['lunar_text']} (ngày {info['can_chi_day']})"]
-    if today_events:
-        lines.append("Hôm nay:")
-        lines += [f"• {e.name}{_years_text(e)}" for e in today_events]
+    lunar = f"{info['lunar_day']}/{info['lunar_month']}" + (" nhuận" if info["lunar_leap"] else "")
+    title = f"📅 LỊCH VIỆT › {_wd(today)} {today:%d/%m} · {lunar} ÂL"
 
-    reminders: list[str] = []
+    lines: list[str] = []
+    if today_events:
+        lines.append(f"Hôm nay: {_names(today_events)}")
+
+    due: dict[date, list[Occurrence]] = {}
     horizon = today + timedelta(days=_MAX_REMIND)
     for occ in events_between(today + timedelta(days=1), horizon, custom, monthly=True):
         days_left = (occ.date - today).days
         if occ.category == CAT_FAMILY:
-            due = occ.remind_days and days_left == occ.remind_days
+            ok = occ.remind_days and days_left == occ.remind_days
         elif occ.category == CAT_MONTHLY:
-            due = bool(monthly_remind) and days_left == monthly_remind
+            ok = bool(monthly_remind) and days_left == monthly_remind
         else:
-            due = bool(holiday_remind) and days_left == holiday_remind
-        if due:
-            when = "ngày mai" if days_left == 1 else f"còn {days_left} ngày"
-            lunar = f", {occ.as_dict()['lunar']} âm" if occ.category == CAT_FAMILY and occ.lunar else ""
-            reminders.append(
-                f"• {occ.name}{_years_text(occ)}: {when} ({WEEKDAYS[occ.date.weekday()]} "
-                f"{occ.date:%d/%m}{lunar})"
-            )
-    if reminders:
-        lines.append("Sắp tới:")
-        lines += reminders
-    title = f"📅 LỊCH VIỆT › {WEEKDAYS[today.weekday()].upper()} {today:%d/%m/%Y}"
-    return title, "\n".join(lines), bool(today_events or reminders)
+            ok = bool(holiday_remind) and days_left == holiday_remind
+        if ok:
+            due.setdefault(occ.date, []).append(occ)
+    for day in sorted(due):
+        days_left = (day - today).days
+        when = "Ngày mai" if days_left == 1 else f"Còn {days_left} ngày ({_wd(day)} {day:%d/%m})"
+        lines.append(f"{when}: {_names(due[day])}")
+
+    lines.append(f"Ngày {info['can_chi_day']} · năm {info['can_chi_year']}")
+    return title, "\n".join(lines), bool(today_events or due)
 
 
 class LichVietNotifier:

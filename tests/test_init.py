@@ -416,20 +416,24 @@ async def test_morning_report_and_reminders(hass, tz, freezer, hass_ws_client, h
     # 19/11: nhắc ngày mai là Ngày Nhà giáo
     await _tick(hass, freezer, "2026-11-19 06:30:00+07:00")
     assert len(tg) == 1 and len(app) == 1
-    assert "Ngày Nhà giáo Việt Nam: ngày mai (Thứ Sáu 20/11)" in tg[0].data["message"]
-    assert tg[0].data["title"].startswith("<b>📅 LỊCH VIỆT › THỨ NĂM 19/11/2026")
-    assert app[0].data["message"].startswith("Âm lịch: 11 tháng 10 năm Bính Ngọ")
+    assert tg[0].data["message"] == "Ngày mai: Ngày Nhà giáo Việt Nam\nNgày Đinh Dậu · năm Bính Ngọ"
+    assert tg[0].data["title"] == "<b>📅 LỊCH VIỆT › T5 19/11 · 11/10 ÂL</b>"
+    # Telegram và app gửi y hệt nhau (Telegram chỉ thêm in đậm tiêu đề)
+    assert app[0].data["title"] == "📅 LỊCH VIỆT › T5 19/11 · 11/10 ÂL"
+    assert app[0].data["message"] == tg[0].data["message"]
     # nhấn vào tin trên app thì mở trang Lịch Việt (iOS: url, Android: clickAction)
     assert app[0].data["data"] == {"url": "/lich-viet", "clickAction": "/lich-viet"}
     assert "data" not in tg[0].data
 
     # 23/11 rằm: có sự kiện hôm nay
     await _tick(hass, freezer, "2026-11-23 06:30:00+07:00")
-    assert "Hôm nay:\n• Rằm tháng 10 (Tết Hạ nguyên)" in tg[-1].data["message"]
+    assert tg[-1].data["message"].startswith("Hôm nay: Rằm tháng 10 (Tết Hạ nguyên)\n")
+    assert app[-1].data["message"] == tg[-1].data["message"]
 
     # 20/12: nhắc trước 3 ngày giỗ ông nội (15/11 âm = 23/12), năm thứ 16
     await _tick(hass, freezer, "2026-12-20 06:30:00+07:00")
-    assert "Giỗ ông nội (16 năm): còn 3 ngày (Thứ Tư 23/12, 15/11 âm)" in tg[-1].data["message"]
+    assert "Còn 3 ngày (T4 23/12): Giỗ ông nội (16 năm)" in tg[-1].data["message"]
+    assert app[-1].data["message"] == tg[-1].data["message"]
 
 
 async def test_scheduled_report_reminds_first_lunar_day(hass, tz, freezer):
@@ -440,7 +444,7 @@ async def test_scheduled_report_reminds_first_lunar_day(hass, tz, freezer):
     assert entry.options["monthly_remind_days"] == 1
     await _tick(hass, freezer, "2026-12-08 06:30:00+07:00")
     assert len(tg) == 1
-    assert "Mùng 1 tháng 11: ngày mai (Thứ Tư 09/12)" in tg[0].data["message"]
+    assert "Ngày mai: Mùng 1 tháng 11" in tg[0].data["message"]
 
 
 async def test_monthly_remind_defaults_for_existing_entry(hass, tz, freezer):
@@ -452,7 +456,7 @@ async def test_monthly_remind_defaults_for_existing_entry(hass, tz, freezer):
     hass.config_entries.async_update_entry(entry, options={**opts, "telegram_targets": [TG]})
     await hass.async_block_till_done()
     await _tick(hass, freezer, "2026-12-08 06:30:00+07:00")
-    assert "Mùng 1 tháng 11: ngày mai" in tg[-1].data["message"]
+    assert "Ngày mai: Mùng 1 tháng 11" in tg[-1].data["message"]
 
 
 async def test_report_switches_and_button(hass, tz, freezer):
